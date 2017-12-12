@@ -2,8 +2,12 @@
   class="file"
   [ngClass]="{
     toggled: file.isToggled,
-    'is-group': isGroup
+    'is-group': isGroup,
+    changed: file.isChanged,
+    toggled: file.isToggled,
+    selected: file.isSelected
   }"
+  (click)="onClick()"
 >
   <!-- <svg-icon *ngIf="isFile" class="icon-file-file" src="assets/icons/file.svg"></svg-icon> -->
   <!-- <ng-container *ngIf="isGroup">
@@ -16,7 +20,7 @@
   </div> -->
 </div>
 
-<div class="dragula">
+<div class="dragula" [hidden]="!files || !file.isToggled">
   <app-file
     *ngFor="let file of files"
     [file]="file"

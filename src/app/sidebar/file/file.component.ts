@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, ViewEncapsulation } from '@angular/core';
+import { StoreService } from '../..//core/store.service';
 
 @Component({
   selector: 'app-file',
@@ -10,7 +11,7 @@ export class FileComponent implements OnInit {
 
   @Input() file;
 
-  files
+  files;
 
   public get isFile() {
     return this.file.type === 'file';
@@ -19,11 +20,21 @@ export class FileComponent implements OnInit {
     return this.file.type === 'group';
   }
 
-  constructor() { }
+  constructor(
+    private store: StoreService
+  ) { }
 
   ngOnInit() {
     if (this.isGroup) {
       this.getInnerFiles();
+    }
+  }
+
+  onClick() {
+    if (this.isGroup) {
+      this.toggle();
+    } else if (this.isFile) {
+      this.select();
     }
   }
 
@@ -32,6 +43,18 @@ export class FileComponent implements OnInit {
       this.file.files = [];
     }
     this.files = this.file.files;
+  }
+
+  private toggle() {
+    this.file.isToggled = !this.file.isToggled;
+  }
+
+  private select() {
+    if (this.file.isSelected) {
+      return;
+    }
+
+    this.store.event('File:Selected').emit(this.file);
   }
 
 }

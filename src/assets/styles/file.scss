@@ -13,23 +13,13 @@
 
   &:hover, &.hovered {
     background-color: $file-hover;
-    &.changed::after {
-      display: none;
-    }
   }
 
   &.selected {
-    color: #ffffff;
+    color: #fff;
     background: $file-selected;
     &.changed::after {
       background-color: #fff;
-    }
-  }
-
-  &.is-group.selected {
-    background: $file-group-selected;
-    &.changed::after {
-      background-color: #8f8e94;
     }
   }
 
@@ -40,7 +30,7 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background-color: #8f8e94;
+      background-color: $blue;
       position: absolute;
       right: 16px;
       top: 50%;

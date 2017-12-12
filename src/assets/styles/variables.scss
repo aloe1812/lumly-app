@@ -5,9 +5,9 @@ $line-height: 1.3;
 
 // colors
 $black: #000;
+$blue: #2f8efe;
 $divider-color: rgb(229, 229, 229);
 
 // file colors
 $file-hover: #e5e5e5;
-$file-selected: #2f8efe;
-$file-group-selected: #3c3c3d;
+$file-selected: $blue;

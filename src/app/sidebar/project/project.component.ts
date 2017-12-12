@@ -10,6 +10,7 @@ export class ProjectComponent implements OnInit {
 
   project;
   files;
+  activeFile;
 
   constructor(
     private store: StoreService
@@ -17,6 +18,7 @@ export class ProjectComponent implements OnInit {
 
   ngOnInit() {
     this.subscribeToActiveProject();
+    this.subscribeToActiveFile();
   }
 
   private subscribeToActiveProject() {
@@ -29,6 +31,19 @@ export class ProjectComponent implements OnInit {
           this.clearProject();
         }
       })
+  }
+
+  private subscribeToActiveFile() {
+    this.store.event('File:Selected').get().subscribe(
+      (file) => {
+        if (this.activeFile) {
+          this.activeFile.isSelected = false;
+        }
+
+        file.isSelected = true;
+        this.activeFile = file;
+      }
+    );
   }
 
   private clearProject() {
