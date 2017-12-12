@@ -1,0 +1,75 @@
+@import './variables';
+
+.file {
+  display: flex;
+  align-items: center;
+  padding: 5px 34px 5px 8px;
+  height: 32px;
+  user-select: none;
+  cursor: pointer;
+  font-size: 13px;
+  position: relative;
+  overflow: hidden;
+
+  &:hover, &.hovered {
+    background-color: $file-hover;
+    &.changed::after {
+      display: none;
+    }
+  }
+
+  &.selected {
+    color: #ffffff;
+    background: $file-selected;
+    &.changed::after {
+      background-color: #fff;
+    }
+  }
+
+  &.is-group.selected {
+    background: $file-group-selected;
+    &.changed::after {
+      background-color: #8f8e94;
+    }
+  }
+
+  &.changed {
+    &::after {
+      content: '';
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #8f8e94;
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      margin-top: -3px;
+    }
+  }
+
+  .title {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+.file {
+  padding-left: 12px;
+  + .dragula .file {
+    padding-left: 34px;
+    + .dragula .file {
+      padding-left: 56px;
+      + .dragula .file {
+        padding-left: 78px;
+        + .dragula .file {
+          padding-left: 100px;
+          + .dragula .file {
+            padding-left: 122px;
+          }
+        }
+      }
+    }
+  }
+}

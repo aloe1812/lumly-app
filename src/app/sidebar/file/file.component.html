@@ -1,0 +1,24 @@
+<div
+  class="file"
+  [ngClass]="{
+    toggled: file.isToggled,
+    'is-group': isGroup
+  }"
+>
+  <!-- <svg-icon *ngIf="isFile" class="icon-file-file" src="assets/icons/file.svg"></svg-icon> -->
+  <!-- <ng-container *ngIf="isGroup">
+    <svg-icon class="icon-file-arrow" src="assets/icons/expand-arrow.svg"></svg-icon>
+    <svg-icon class="icon-file-folder" src="assets/icons/folder.svg"></svg-icon>
+  </ng-container> -->
+  <div class="title">{{ file.title }}</div>
+  <!-- <div class="more-block">
+    <button class="simple-btn btn-more" (click)="openMore($event)"><svg-icon src="assets/icons/more.svg"></svg-icon></button>
+  </div> -->
+</div>
+
+<div class="dragula">
+  <app-file
+    *ngFor="let file of files"
+    [file]="file"
+  ></app-file>
+</div>
