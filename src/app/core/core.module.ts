@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { ElectronService } from './electron.service';
 import { StoreService } from './store.service';
+import { ProjectService } from './project.service';
 
 @NgModule({
   imports: [
@@ -10,7 +11,8 @@ import { StoreService } from './store.service';
   ],
   providers: [
     ElectronService,
-    StoreService
+    StoreService,
+    ProjectService
   ],
   declarations: []
 })

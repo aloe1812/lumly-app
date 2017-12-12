@@ -4,5 +4,5 @@
   <!-- <div></div> -->
 </div>
 <div>
-  <button disabled>Save</button>
+  <button [disabled]="!isProjectHasChanges" (click)="saveProject()">Save</button>
 </div>

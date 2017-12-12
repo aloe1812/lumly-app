@@ -10,6 +10,7 @@ export class AppEvents {
       this.win = window;
     }
     this.registerOpenProjectEvent();
+    this.registerSaveProjectEvent();
   }
 
   setWindow(window) {
@@ -45,10 +46,29 @@ export class AppEvents {
             return;
           }
 
-          this.win.webContents.send('Project:Opened', contents);
+          this.win.webContents.send('Project:Opened', {
+            file: contents,
+            path: filePath
+          });
         });
       });
 
+    });
+  }
+
+  // TODO: 1. добавить лог, 2. оно создаст файл, если в текущем его нету
+  // 3. проверить, если нету папки?
+  // 4. может вообще проверять существует путь и если нету, то показывать сохранить как
+  private registerSaveProjectEvent() {
+    ipcMain.on('Project:Save', (event, data) => {
+      fs.writeFile(data.path, data.file, (error) => {
+        if (error) {
+          this.win.webContents.send('Project:Saved:Error');
+          throw error;
+        };
+
+        this.win.webContents.send('Project:Saved');
+      });
     });
   }
 

@@ -1,5 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
+import { ProjectService } from '../../core/project.service';
+import { ElectronService } from '../../core/electron.service';
+
 import * as CodeMirror from 'CodeMirror';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
@@ -16,17 +19,21 @@ export class EditorComponent implements OnInit {
 
   editor;
   activeFile;
+  lastFileChangedStatus = false;
 
   private codeTerms = new Subject<string>();
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private projectService: ProjectService,
+    private electronService: ElectronService
   ) { }
 
   ngOnInit() {
     this.initEditor();
     this.subscribeToActiveFile();
     this.subscribeToCodeChange();
+    this.subscribeToProjectSaved();
   }
 
   private initEditor() {
@@ -48,6 +55,8 @@ export class EditorComponent implements OnInit {
           file.originalContent = file.content;
         }
 
+        this.lastFileChangedStatus = !!file.isChanged;
+
         this.activeFile = file;
         this.editor.setValue(file.content);
       });
@@ -66,6 +75,24 @@ export class EditorComponent implements OnInit {
 
     this.activeFile.content = code;
     this.activeFile.isChanged = this.activeFile.originalContent !== this.activeFile.content;
+
+    // сохраняем изменение только если было изменение
+    if (this.lastFileChangedStatus !== this.activeFile.isChanged) {
+      this.projectService.saveChange({
+        guid: this.activeFile.guid,
+        changes: {
+          isChanged: this.activeFile.isChanged
+        }
+      });
+    }
+
+    this.lastFileChangedStatus = this.activeFile.isChanged;
+  }
+
+  private subscribeToProjectSaved() {
+    this.electronService.ipcRenderer.on('Project:Saved', () => {
+      this.lastFileChangedStatus = false;
+    });
   }
 
 }

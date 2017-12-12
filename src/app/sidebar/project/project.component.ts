@@ -30,7 +30,7 @@ export class ProjectComponent implements OnInit {
         } else {
           this.clearProject();
         }
-      })
+      });
   }
 
   private subscribeToActiveFile() {
