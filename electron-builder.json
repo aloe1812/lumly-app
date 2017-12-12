@@ -1,0 +1,8 @@
+{
+  "productName": "lumly",
+  "appId": "com.electron.lumly",
+  "directories": {
+    "app": "dist",
+    "output": "app-builds"
+  }
+}
