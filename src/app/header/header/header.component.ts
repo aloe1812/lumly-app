@@ -58,7 +58,6 @@ export class HeaderComponent implements OnInit {
     });
 
     this.electronService.ipcRenderer.on('Project:Saved', () => {
-      // TODO: добавить event что проект сохранен
       this.projectService.updateProjectAfterSave();
     });
 
