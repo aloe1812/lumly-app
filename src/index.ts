@@ -1,6 +1,5 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
-import * as path from 'path';
-import * as fs from 'fs';
+import { AppEvents } from './electron/events'
 
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
@@ -12,6 +11,7 @@ if (serve) {
 // Сохраняем ссылку на глобальный объект окна, в противном случае окно будет закрыто
 // автоматически, когда сборщик мусора удалит объект
 let mainWindow;
+const appEvents = new AppEvents();
 
 const contextMenu = new Menu();
 
@@ -28,6 +28,8 @@ function createWindow() {
       nodeIntegration: true
     }
   });
+
+  appEvents.setWindow(mainWindow);
 
   mainWindow.setMinimumSize(500, 300);
 

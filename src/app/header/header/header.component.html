@@ -1,8 +1,8 @@
 <div>
-  <button>Create Project</button>
-  <button>Open Project</button>
+  <!-- <button>Create Project</button> -->
+  <button (click)="openProject()">Open Project</button>
   <!-- <div></div> -->
 </div>
 <div>
-  <button>Save</button>
+  <button [disabled]="!isProjectHasChanges" (click)="saveProject()">Save</button>
 </div>

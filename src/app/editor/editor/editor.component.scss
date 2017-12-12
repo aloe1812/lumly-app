@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+}
+
+textarea {
+  font-family: monospace;
+  font-size: 13px;
+  flex: 1 1 auto;
+  border: none;
+  resize: none;
+  padding: 24px;
+  &:focus {
+    outline: none;
+  }
+}
