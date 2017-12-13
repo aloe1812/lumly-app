@@ -14,3 +14,11 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(359deg); }
 }
+
+.svg-icon {
+  background-repeat: no-repeat;
+  display: inline-block;
+  fill: currentColor;
+  height: 24px;
+  width: 24px;
+}
