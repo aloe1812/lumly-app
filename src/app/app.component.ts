@@ -12,8 +12,9 @@ export class AppComponent {
   private icons = [
     ['file', 'assets/icons/file.svg'],
     ['arrow-round', 'assets/icons/arrow-round.svg'],
-    ['expand-arrow', 'assets/icons/expand-arrow.svg']
-  ]
+    ['expand-arrow', 'assets/icons/expand-arrow.svg'],
+    ['beach-ball', 'assets/icons/beach-ball.svg']
+  ];
 
   constructor(
     private svgIconService: SvgIconService

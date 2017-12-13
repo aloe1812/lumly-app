@@ -22,7 +22,9 @@ export class BreadcrumbsComponent implements OnInit {
     this.store.event('File:Selected').get()
       .subscribe(data => {
         if (data) {
-          this.path = data.path.split('.')
+          setTimeout(() => {
+            this.path = data.path.split('.')
+          });
         } else {
           this.path = null;
         }

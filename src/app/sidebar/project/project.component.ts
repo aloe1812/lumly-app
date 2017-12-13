@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { StoreService } from '../..//core/store.service';
+import { PlaygroundComponent } from '..//playground/playground.component';
 
 @Component({
   selector: 'app-project',
@@ -7,6 +8,8 @@ import { StoreService } from '../..//core/store.service';
   styleUrls: ['./project.component.scss']
 })
 export class ProjectComponent implements OnInit {
+
+  @ViewChild(PlaygroundComponent) playground: PlaygroundComponent;
 
   project;
   files;
@@ -24,6 +27,8 @@ export class ProjectComponent implements OnInit {
   private subscribeToActiveProject() {
     this.store.data('Project:Active').get()
       .subscribe(project => {
+        this.playground.select();
+
         if (project) {
           this.project = project;
           this.files = project.content.files;
@@ -39,7 +44,6 @@ export class ProjectComponent implements OnInit {
         if (this.activeFile) {
           this.activeFile.isSelected = false;
         }
-
         file.isSelected = true;
         this.activeFile = file;
       }

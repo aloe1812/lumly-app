@@ -74,6 +74,11 @@ export class EditorComponent implements OnInit {
     }
 
     this.activeFile.content = code;
+
+    if (this.activeFile.type === 'playground') {
+      return;
+    }
+
     this.activeFile.isChanged = this.activeFile.originalContent !== this.activeFile.content;
 
     // сохраняем изменение только если было изменение
