@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { SvgIconService } from './svg-icon/svg-icon.service';
+import * as forEach from 'lodash/forEach';
 
 @Component({
   selector: 'app-root',
@@ -7,6 +9,16 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
 
-  constructor() { }
+  private icons = [
+    ['file', 'assets/icons/file.svg']
+  ]
+
+  constructor(
+    private svgIconService: SvgIconService
+  ) {
+    forEach(this.icons, icon => {
+      svgIconService.registerIcon(icon);
+    });
+  }
 
 }
