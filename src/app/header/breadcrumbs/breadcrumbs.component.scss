@@ -1,0 +1,24 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  color: #fff;
+  display: flex;
+  flex: 1 1 auto;
+  font-size: 13px;
+  color: $grey;
+  padding-left: 8px;
+  > div {
+    display: flex;
+    align-items: center;
+    .svg-icon {
+      width: 14px;
+      height: 14px;
+      stroke: $grey;
+      transform: rotate(-90deg);
+      margin: 0 4px;
+    }
+  }
+  > div:last-child {
+    color: $light;
+  }
+}

@@ -8,12 +8,11 @@
   > div {
     display: flex;
     align-items: center;
+    flex: 0 0 auto;
   }
   > div:first-child {
-    margin: 0 -5px;
-    button {
-      margin: 0 5px;
-    }
+    flex: 1 1 auto;
+    display: flex;
   }
 }
 

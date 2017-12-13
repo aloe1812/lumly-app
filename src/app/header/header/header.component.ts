@@ -12,6 +12,7 @@ export class HeaderComponent implements OnInit {
 
   project;
   isProjectHasChanges = false;
+  openProjectTitle = 'Open Project';
 
   constructor(
     private electronService: ElectronService,
@@ -21,10 +22,7 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.subscribeToElectronEvents();
-
-    this.projectService.onProjectHasChanges.subscribe(hasChanges => {
-      this.isProjectHasChanges = hasChanges;
-    });
+    this.subscribeToProjectChanges();
   }
 
   openProject() {
@@ -47,6 +45,7 @@ export class HeaderComponent implements OnInit {
         this.project.project.path = data.path;
         this.projectService.prepareProject(this.project);
         this.store.data('Project:Active').set(this.project);
+        this.openProjectTitle = this.project.project.title;
       } catch (e) {
         alert('Provided file is incorrect or damaged');
       }
@@ -62,6 +61,12 @@ export class HeaderComponent implements OnInit {
 
     this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
       alert('There was error on saving file');
+    });
+  }
+
+  private subscribeToProjectChanges() {
+    this.projectService.onProjectHasChanges.subscribe(hasChanges => {
+      this.isProjectHasChanges = hasChanges;
     });
   }
 
