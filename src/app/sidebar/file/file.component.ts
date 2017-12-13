@@ -5,7 +5,6 @@ import { MenuService } from '../../shared/menu.service';
 @Component({
   selector: 'app-file',
   templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class FileComponent implements OnInit {
@@ -15,6 +14,7 @@ export class FileComponent implements OnInit {
 
   files;
   isHovered = false;
+  isRename = false;
 
   public get isFile() {
     return this.file.type === 'file';
@@ -37,6 +37,10 @@ export class FileComponent implements OnInit {
   }
 
   onClick() {
+    if (this.isRename) {
+      return;
+    }
+
     if (this.isGroup) {
       this.toggle();
     } else if (this.isFile) {
@@ -47,6 +51,10 @@ export class FileComponent implements OnInit {
   openContext(event) {
     event.preventDefault();
     this.openMenu(event);
+  }
+
+  onRenamed() {
+    this.isRename = false;
   }
 
   private getInnerFiles() {
@@ -99,7 +107,9 @@ export class FileComponent implements OnInit {
         return;
       }
 
-      console.log(evType);
+      if (evType === 'rename') {
+        this.isRename = true;
+      }
     });
   }
 

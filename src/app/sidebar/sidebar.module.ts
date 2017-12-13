@@ -7,6 +7,7 @@ import { SidebarComponent } from './sidebar/sidebar.component';
 import { ProjectComponent } from './project/project.component';
 import { FileComponent } from './file/file.component';
 import { PlaygroundComponent } from './playground/playground.component';
+import { FileRenameComponent } from './file-rename/file-rename.component';
 
 @NgModule({
   imports: [
@@ -14,7 +15,13 @@ import { PlaygroundComponent } from './playground/playground.component';
     SvgIconModule,
     SharedModule
   ],
-  declarations: [SidebarComponent, ProjectComponent, FileComponent, PlaygroundComponent],
+  declarations: [
+    SidebarComponent,
+    ProjectComponent,
+    FileComponent,
+    PlaygroundComponent,
+    FileRenameComponent
+  ],
   exports: [
     SidebarComponent
   ]
