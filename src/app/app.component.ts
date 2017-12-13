@@ -10,7 +10,8 @@ import * as forEach from 'lodash/forEach';
 export class AppComponent {
 
   private icons = [
-    ['file', 'assets/icons/file.svg']
+    ['file', 'assets/icons/file.svg'],
+    ['arrow-round', 'assets/icons/arrow-round.svg']
   ]
 
   constructor(

@@ -47,7 +47,6 @@ export class HeaderComponent implements OnInit {
         this.project.project.path = data.path;
         this.projectService.prepareProject(this.project);
         this.store.data('Project:Active').set(this.project);
-        console.log(this.project);
       } catch (e) {
         alert('Provided file is incorrect or damaged');
       }
