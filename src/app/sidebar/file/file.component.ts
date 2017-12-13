@@ -13,6 +13,7 @@ export class FileComponent implements OnInit {
   @Input() path;
 
   files;
+  filePath = [];
   isHovered = false;
   isRename = false;
 
@@ -75,15 +76,15 @@ export class FileComponent implements OnInit {
 
     this.store.event('File:Selected').emit({
       file: this.file,
-      path: this.path
+      path: this.filePath
     });
   }
 
   private setPath() {
     if (this.path !== undefined) {
-      this.path = this.path + '.' + this.file.title;
+      this.filePath = this.path.concat(this.file);
     } else {
-      this.path = this.file.title;
+      this.filePath = [this.file];
     }
   }
 

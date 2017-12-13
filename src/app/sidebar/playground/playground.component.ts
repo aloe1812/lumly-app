@@ -11,9 +11,9 @@ export class PlaygroundComponent implements OnInit {
   file = {
     content: '',
     isSelected: true,
-    type: 'playground'
+    type: 'playground',
+    title: 'Playground'
   };
-  path = 'Playground';
 
   constructor(
     private store: StoreService
@@ -30,7 +30,7 @@ export class PlaygroundComponent implements OnInit {
 
     this.store.event('File:Selected').emit({
       file: this.file,
-      path: this.path
+      path: [this.file]
     });
   }
 

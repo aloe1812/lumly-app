@@ -121,6 +121,9 @@ export class ProjectService {
           file.originalContent = file.content;
         }
 
+        file.isTitleChanged = false;
+        file.originalTitle = file.title;
+
         if (file.type === 'group') {
           updateFiles(file.files);
         }

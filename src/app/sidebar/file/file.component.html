@@ -3,7 +3,7 @@
   [ngClass]="{
     toggled: file.isToggled,
     'is-group': isGroup,
-    changed: file.isChanged,
+    changed: !isRename && (file.isChanged || file.isTitleChanged),
     toggled: file.isToggled,
     selected: file.isSelected,
     hovered: isHovered
@@ -15,13 +15,14 @@
   <ng-container *ngIf="isGroup">
     <svg-icon class="icon-arrow" icon="arrow-round"></svg-icon>
   </ng-container>
-  <div class="title">{{ file.title }}</div>
+  <div class="title" *ngIf="!isRename">{{ file.title }}</div>
+  <app-file-rename *ngIf="isRename" [file]="file" (renamed)="onRenamed()"></app-file-rename>
 </div>
 
 <div class="dragula" [hidden]="!files || !file.isToggled">
   <app-file
     *ngFor="let file of files"
     [file]="file"
-    [path]="path"
+    [path]="filePath"
   ></app-file>
 </div>
