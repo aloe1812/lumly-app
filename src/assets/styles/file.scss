@@ -12,10 +12,6 @@
   overflow: hidden;
   color: $dark;
 
-  .title {
-    margin-left: 6px;
-  }
-
   &.is-group {
     color: $grey;
   }
@@ -74,7 +70,9 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    line-height: 1;
+    line-height: 24px;
+    padding-top: 1px;
+    margin-left: 6px;
   }
 }
 
