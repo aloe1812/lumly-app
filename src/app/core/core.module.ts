@@ -5,6 +5,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { ElectronService } from './electron.service';
 import { StoreService } from './store.service';
 import { ProjectService } from './project.service';
+import { InjectionService } from './injection.service';
+import { UtilsService } from './utils.service';
 
 @NgModule({
   imports: [
@@ -14,7 +16,9 @@ import { ProjectService } from './project.service';
   providers: [
     ElectronService,
     StoreService,
-    ProjectService
+    ProjectService,
+    InjectionService,
+    UtilsService
   ],
   declarations: []
 })

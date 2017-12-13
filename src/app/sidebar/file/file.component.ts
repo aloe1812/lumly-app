@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, ViewEncapsulation } from '@angular/core';
-import { StoreService } from '../..//core/store.service';
+import { StoreService } from '../../core/store.service';
+import { MenuService } from '../../shared/menu.service';
 
 @Component({
   selector: 'app-file',
@@ -13,6 +14,7 @@ export class FileComponent implements OnInit {
   @Input() path;
 
   files;
+  isHovered = false;
 
   public get isFile() {
     return this.file.type === 'file';
@@ -22,7 +24,8 @@ export class FileComponent implements OnInit {
   }
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private menuService: MenuService
   ) { }
 
   ngOnInit() {
@@ -39,6 +42,11 @@ export class FileComponent implements OnInit {
     } else if (this.isFile) {
       this.select();
     }
+  }
+
+  openContext(event) {
+    event.preventDefault();
+    this.openMenu(event);
   }
 
   private getInnerFiles() {
@@ -69,6 +77,30 @@ export class FileComponent implements OnInit {
     } else {
       this.path = this.file.title;
     }
+  }
+
+  private openMenu(ev) {
+    this.isHovered = true;
+
+    const menuItems = [
+      {
+        title: 'Rename',
+        type: 'rename'
+      }
+    ];
+
+    this.menuService.openMenu({
+      items: menuItems,
+      event: ev
+    }).subscribe(evType => {
+      this.isHovered = false;
+
+      if (!evType) {
+        return;
+      }
+
+      console.log(evType);
+    });
   }
 
 }
