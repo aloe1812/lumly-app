@@ -5,6 +5,7 @@
   height: 32px;
   align-items: center;
   padding: 0 9px 0 16px;
+  font-size: 13px;
   color: $blue;
   border-bottom: 1px solid #E5E5E5;
   justify-content: space-between;
@@ -12,11 +13,12 @@
   .svg-icon {
     width: 18px;
     height: 18px;
-    stroke: #2f8efe;
+    stroke: $blue;
   }
   &.selected {
     background: $blue;
     color: #fff;
+    border-bottom-color: $blue;
     .svg-icon {
       stroke: #fff;
     }

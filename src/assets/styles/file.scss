@@ -3,7 +3,7 @@
 .file {
   display: flex;
   align-items: center;
-  padding: 0;
+  padding: 0 9px 0 0;
   height: 24px;
   user-select: none;
   cursor: pointer;
@@ -22,12 +22,14 @@
     color: $grey;
     margin: 0 1px 0 2px;
     transform: rotate(-90deg);
+    flex: 0 0 auto;
   }
 
   .icon-file {
     color: $grey;
     width: 14px;
     height: 14px;
+    flex: 0 0 auto;
   }
 
   &:hover, &.hovered {
@@ -73,6 +75,24 @@
     line-height: 24px;
     padding-top: 1px;
     margin-left: 6px;
+  }
+
+  app-file-rename {
+    flex: 1 1 auto;
+    input {
+      font-family: $font-family;
+      width: 100%;
+      padding: 0;
+      font-size: 13px;
+      border: none;
+      display: block;
+      padding-left: 6px;
+      background-color: inherit;
+      color: inherit;
+      &:focus {
+        outline: none;
+      }
+    }
   }
 }
 

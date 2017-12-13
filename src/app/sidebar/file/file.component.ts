@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, ViewEncapsulation } from '@angular/core';
-import { StoreService } from '../..//core/store.service';
+import { StoreService } from '../../core/store.service';
+import { MenuService } from '../../shared/menu.service';
 
 @Component({
   selector: 'app-file',
   templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class FileComponent implements OnInit {
@@ -13,6 +13,9 @@ export class FileComponent implements OnInit {
   @Input() path;
 
   files;
+  filePath = [];
+  isHovered = false;
+  isRename = false;
 
   public get isFile() {
     return this.file.type === 'file';
@@ -22,7 +25,8 @@ export class FileComponent implements OnInit {
   }
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private menuService: MenuService
   ) { }
 
   ngOnInit() {
@@ -34,11 +38,24 @@ export class FileComponent implements OnInit {
   }
 
   onClick() {
+    if (this.isRename) {
+      return;
+    }
+
     if (this.isGroup) {
       this.toggle();
     } else if (this.isFile) {
       this.select();
     }
+  }
+
+  openContext(event) {
+    event.preventDefault();
+    this.openMenu(event);
+  }
+
+  onRenamed() {
+    this.isRename = false;
   }
 
   private getInnerFiles() {
@@ -59,16 +76,42 @@ export class FileComponent implements OnInit {
 
     this.store.event('File:Selected').emit({
       file: this.file,
-      path: this.path
+      path: this.filePath
     });
   }
 
   private setPath() {
     if (this.path !== undefined) {
-      this.path = this.path + '.' + this.file.title;
+      this.filePath = this.path.concat(this.file);
     } else {
-      this.path = this.file.title;
+      this.filePath = [this.file];
     }
+  }
+
+  private openMenu(ev) {
+    this.isHovered = true;
+
+    const menuItems = [
+      {
+        title: 'Rename',
+        type: 'rename'
+      }
+    ];
+
+    this.menuService.openMenu({
+      items: menuItems,
+      event: ev
+    }).subscribe(evType => {
+      this.isHovered = false;
+
+      if (!evType) {
+        return;
+      }
+
+      if (evType === 'rename') {
+        this.isRename = true;
+      }
+    });
   }
 
 }

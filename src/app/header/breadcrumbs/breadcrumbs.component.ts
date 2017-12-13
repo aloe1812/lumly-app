@@ -23,7 +23,7 @@ export class BreadcrumbsComponent implements OnInit {
       .subscribe(data => {
         if (data) {
           setTimeout(() => {
-            this.path = data.path.split('.')
+            this.path = data.path;
           });
         } else {
           this.path = null;
