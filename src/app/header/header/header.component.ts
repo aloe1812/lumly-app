@@ -12,6 +12,7 @@ export class HeaderComponent implements OnInit {
 
   project;
   isProjectHasChanges = false;
+  openProjectTitle = 'Open Project';
 
   constructor(
     private electronService: ElectronService,
@@ -47,6 +48,7 @@ export class HeaderComponent implements OnInit {
         this.project.project.path = data.path;
         this.projectService.prepareProject(this.project);
         this.store.data('Project:Active').set(this.project);
+        this.openProjectTitle = this.project.project.title;
       } catch (e) {
         alert('Provided file is incorrect or damaged');
       }
