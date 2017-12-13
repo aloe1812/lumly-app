@@ -1,7 +1,7 @@
 <div>
   <!-- <button>Create Project</button> -->
   <button (click)="openProject()">{{ openProjectTitle }}</button>
-  <!-- <div></div> -->
+  <app-breadcrumbs></app-breadcrumbs>
 </div>
 <div>
   <button [disabled]="!isProjectHasChanges" (click)="saveProject()">Save</button>

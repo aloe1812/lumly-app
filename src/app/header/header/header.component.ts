@@ -22,10 +22,7 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.subscribeToElectronEvents();
-
-    this.projectService.onProjectHasChanges.subscribe(hasChanges => {
-      this.isProjectHasChanges = hasChanges;
-    });
+    this.subscribeToProjectChanges();
   }
 
   openProject() {
@@ -64,6 +61,12 @@ export class HeaderComponent implements OnInit {
 
     this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
       alert('There was error on saving file');
+    });
+  }
+
+  private subscribeToProjectChanges() {
+    this.projectService.onProjectHasChanges.subscribe(hasChanges => {
+      this.isProjectHasChanges = hasChanges;
     });
   }
 

@@ -10,6 +10,7 @@ import { StoreService } from '../..//core/store.service';
 export class FileComponent implements OnInit {
 
   @Input() file;
+  @Input() path;
 
   files;
 
@@ -25,6 +26,8 @@ export class FileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.setPath();
+
     if (this.isGroup) {
       this.getInnerFiles();
     }
@@ -54,7 +57,18 @@ export class FileComponent implements OnInit {
       return;
     }
 
-    this.store.event('File:Selected').emit(this.file);
+    this.store.event('File:Selected').emit({
+      file: this.file,
+      path: this.path
+    });
+  }
+
+  private setPath() {
+    if (this.path !== undefined) {
+      this.path = this.path + '.' + this.file.title;
+    } else {
+      this.path = this.file.title;
+    }
   }
 
 }
