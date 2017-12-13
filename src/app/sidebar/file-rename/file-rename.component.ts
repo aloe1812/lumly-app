@@ -27,7 +27,7 @@ export class FileRenameComponent implements OnInit {
 
   onFocusOut() {
     if (this.closed) {
-      this.renamed.emit();
+      this.exit();
     } else {
       this.saveFileNameAndExit();
     }
@@ -39,12 +39,17 @@ export class FileRenameComponent implements OnInit {
       this.saveFileNameAndExit();
     } else if (ev.keyCode === 27) { // ESC
       this.closed = true;
-      this.renamed.emit();
+      this.exit();
     }
   }
 
   saveFileNameAndExit() {
     const fileName = this.input.value;
+
+    if (!fileName) {
+      this.exit();
+      return;
+    }
 
     if (!this.file.originalTitle) {
       this.file.originalTitle = this.file.title;
@@ -61,6 +66,10 @@ export class FileRenameComponent implements OnInit {
       }
     });
 
+    this.exit();
+  }
+
+  exit() {
     this.renamed.emit();
   }
 
