@@ -13,11 +13,12 @@
   .svg-icon {
     width: 18px;
     height: 18px;
-    stroke: #2f8efe;
+    stroke: $blue;
   }
   &.selected {
     background: $blue;
     color: #fff;
+    border-bottom-color: $blue;
     .svg-icon {
       stroke: #fff;
     }
