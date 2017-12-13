@@ -9,15 +9,11 @@
   }"
   (click)="onClick()"
 >
-  <svg-icon *ngIf="isFile" icon="file"></svg-icon>
-  <!-- <ng-container *ngIf="isGroup">
-    <svg-icon class="icon-file-arrow" src="assets/icons/expand-arrow.svg"></svg-icon>
-    <svg-icon class="icon-file-folder" src="assets/icons/folder.svg"></svg-icon>
-  </ng-container> -->
+  <svg-icon *ngIf="isFile" class="icon-file" icon="file"></svg-icon>
+  <ng-container *ngIf="isGroup">
+    <svg-icon class="icon-arrow" icon="arrow-round"></svg-icon>
+  </ng-container>
   <div class="title">{{ file.title }}</div>
-  <!-- <div class="more-block">
-    <button class="simple-btn btn-more" (click)="openMore($event)"><svg-icon src="assets/icons/more.svg"></svg-icon></button>
-  </div> -->
 </div>
 
 <div class="dragula" [hidden]="!files || !file.isToggled">

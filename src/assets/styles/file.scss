@@ -3,21 +3,53 @@
 .file {
   display: flex;
   align-items: center;
-  padding: 5px 34px 5px 8px;
-  height: 32px;
+  padding: 0;
+  height: 24px;
   user-select: none;
   cursor: pointer;
   font-size: 13px;
   position: relative;
   overflow: hidden;
+  color: $dark;
+
+  .title {
+    margin-left: 6px;
+  }
+
+  &.is-group {
+    color: $grey;
+  }
+
+  .icon-arrow {
+    width: 10px;
+    height: 10px;
+    color: $grey;
+    margin: 0 1px 0 2px;
+    transform: rotate(-90deg);
+  }
+
+  .icon-file {
+    color: $grey;
+    width: 14px;
+    height: 14px;
+  }
 
   &:hover, &.hovered {
     background-color: $file-hover;
   }
 
+  &.toggled {
+    .icon-arrow {
+      transform: rotate(0);
+    }
+  }
+
   &.selected {
     color: #fff;
     background: $file-selected;
+    .icon-file {
+      color: #fff;
+    }
     &.changed::after {
       background-color: #fff;
     }
@@ -42,21 +74,25 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    line-height: 1;
   }
 }
 
 .file {
-  padding-left: 12px;
+  padding-left: 9px;
   + .dragula .file {
-    padding-left: 34px;
+    padding-left: 27px;
     + .dragula .file {
-      padding-left: 56px;
+      padding-left: 45px;
       + .dragula .file {
-        padding-left: 78px;
+        padding-left: 63px;
         + .dragula .file {
-          padding-left: 100px;
+          padding-left: 81px;
           + .dragula .file {
-            padding-left: 122px;
+            padding-left: 99px;
+            + .dragula .file {
+              padding-left: 117px;
+            }
           }
         }
       }
