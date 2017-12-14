@@ -1,0 +1,4 @@
+<div class="sidenav-backdrop" [@backdropState]="sidenavState" (click)="hide()"></div>
+<div class="sidenav-content" [@contentState]="sidenavState" (@contentState.done)="animationDone($event)">
+  <ng-content></ng-content>
+</div>

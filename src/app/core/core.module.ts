@@ -19,7 +19,6 @@ import { UtilsService } from './utils.service';
     ProjectService,
     InjectionService,
     UtilsService
-  ],
-  declarations: []
+  ]
 })
 export class CoreModule { }
