@@ -8,6 +8,7 @@ import { ProjectComponent } from './project/project.component';
 import { FileComponent } from './file/file.component';
 import { PlaygroundComponent } from './playground/playground.component';
 import { FileRenameComponent } from './file-rename/file-rename.component';
+import { FooterComponent } from './footer/footer.component';
 
 @NgModule({
   imports: [
@@ -20,7 +21,8 @@ import { FileRenameComponent } from './file-rename/file-rename.component';
     ProjectComponent,
     FileComponent,
     PlaygroundComponent,
-    FileRenameComponent
+    FileRenameComponent,
+    FooterComponent
   ],
   exports: [
     SidebarComponent

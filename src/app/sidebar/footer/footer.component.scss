@@ -1,0 +1,33 @@
+@import '../../../assets/styles/variables';
+
+.footer {
+  display: flex;
+  height: 48px;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-add {
+  .svg-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.btn-bars {
+  .svg-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.btn-add, .btn-bars {
+  opacity: 0.55;
+  .svg-icon {
+    color: $darker;
+  }
+  &:hover {
+    opacity: 0.42;
+  }
+}

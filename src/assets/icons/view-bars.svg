@@ -1,0 +1,33 @@
+<svg id="icon_View_bars" data-name="icon View bars" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+  <metadata><?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 5.6-c142 79.160924, 2017/07/13-01:06:39        ">
+   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <rdf:Description rdf:about=""/>
+   </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?></metadata>
+<defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #282828;
+        stroke-width: 2px;
+      }
+
+      .cls-2, .cls-3 {
+        fill: #282828;
+      }
+
+      .cls-2 {
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <rect class="cls-1" x="1" y="1" width="38" height="38" rx="4" ry="4"/>
+  <path class="cls-2" d="M1481,1733h1.95v38H1481v-38Z" transform="translate(-1468 -1732)"/>
+  <g>
+    <rect class="cls-3" x="20" y="8" width="12" height="2"/>
+    <rect id="Rectangle_3_copy_3" data-name="Rectangle 3 copy 3" class="cls-3" x="20" y="13" width="12" height="2"/>
+    <rect id="Rectangle_3_copy_4" data-name="Rectangle 3 copy 4" class="cls-3" x="20" y="18" width="12" height="2"/>
+  </g>
+</svg>

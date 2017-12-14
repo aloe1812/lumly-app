@@ -1,0 +1,15 @@
+.simple-btn {
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  &::-moz-focus-inner {
+    border: 0;
+  }
+  &:focus {
+    outline: none;
+  }
+  svg-icon, svg-icon svg {
+    display: block;
+  }
+}

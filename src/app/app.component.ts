@@ -13,7 +13,9 @@ export class AppComponent {
     ['file', 'assets/icons/file.svg'],
     ['arrow-round', 'assets/icons/arrow-round.svg'],
     ['expand-arrow', 'assets/icons/expand-arrow.svg'],
-    ['beach-ball', 'assets/icons/beach-ball.svg']
+    ['beach-ball', 'assets/icons/beach-ball.svg'],
+    ['plus', 'assets/icons/plus.svg'],
+    ['view-bars', 'assets/icons/view-bars.svg']
   ];
 
   constructor(
