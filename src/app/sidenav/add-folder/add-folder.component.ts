@@ -1,15 +1,22 @@
-import { Component, OnInit, Input, HostListener } from '@angular/core';
+import { Component, OnInit, Input, HostListener, ViewEncapsulation } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { SidenavComponent } from '../sidenav/sidenav.component';
+import { StoreService } from '../../core/store.service';
+import { ProjectService } from '../../core/project.service';
 
 @Component({
   selector: 'app-add-folder',
   templateUrl: './add-folder.component.html',
   styleUrls: ['./add-folder.component.scss'],
-  host: {'class': 'default-sidenav'}
+  encapsulation: ViewEncapsulation.None,
+  host: {'class': 'default-sidenav add-sidenav'}
 })
 export class AddFolderComponent implements OnInit {
 
   @Input() sidenav: SidenavComponent;
+
+  project;
+  folderNameCtrl = new FormControl();
 
   @HostListener('document:keydown', ['$event'])
   handleKeyEvent($event: KeyboardEvent) {
@@ -19,10 +26,40 @@ export class AddFolderComponent implements OnInit {
     }
   }
 
-  constructor() { }
+  constructor(
+    private store: StoreService,
+    private projectService: ProjectService
+  ) { }
 
   ngOnInit() {
     this.sidenav.show();
+    this.store.data('Project:Active').get().first()
+      .subscribe(project => this.project = project);
+  }
+
+  addFolder() {
+    if (!this.folderNameCtrl.value) {
+      this.sidenav.hide();
+    }
+
+    const folder = {
+      type: 'group',
+      guid: ++this.project.project.guidCounter,
+      title: this.folderNameCtrl.value,
+      isNew: true,
+      files: []
+    };
+
+    this.project.content.files.push(folder);
+
+    this.projectService.saveChange({
+      guid: folder.guid,
+      changes: {
+        isNew: true
+      }
+    });
+
+    this.sidenav.hide();
   }
 
 }

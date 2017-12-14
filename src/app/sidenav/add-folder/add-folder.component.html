@@ -1,17 +1,12 @@
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
-<p>add-folder works</p>
+<header class="sidenav-header">
+  <div class="title">Add new folder</div>
+  <div class="actions">
+    <button class="default-button button-success" [disabled]="!folderNameCtrl.value" (click)="addFolder()">Save</button>
+  </div>
+</header>
+<div class="sidenav-body">
+  <div class="default-form-group">
+    <label for="folder-name">Folder name</label>
+    <input type="text" id="folder-name" [formControl]="folderNameCtrl" name="folder-name" placeholder="Untitled">
+  </div>
+</div>

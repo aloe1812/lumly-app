@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
-const animationTransition = '0.2s ease';
+const animationTransition = '150ms ease';
 
 @Component({
   selector: 'app-sidenav',
