@@ -3,5 +3,6 @@
   <app-file
     *ngFor="let file of files"
     [file]="file"
+    (onDelete)="onFilesDelete($event)"
   ></app-file>
 </div>

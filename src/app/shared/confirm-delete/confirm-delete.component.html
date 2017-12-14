@@ -1,0 +1,10 @@
+<div class="backdrop" (click)="close()"></div>
+<div class="modal">
+  <header class="header">
+    <div class="title">Delete {{ title }}?</div>
+  </header>
+  <div class="btns-wrapper">
+    <button type="button" class="btn-cancel" (click)="close()">Cancel</button>
+    <button type="button" class="btn-delete" (click)="delete()">Delete</button>
+  </div>
+</div>

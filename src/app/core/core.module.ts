@@ -7,6 +7,7 @@ import { StoreService } from './store.service';
 import { ProjectService } from './project.service';
 import { InjectionService } from './injection.service';
 import { UtilsService } from './utils.service';
+import { FileService } from './file.service';
 
 @NgModule({
   imports: [
@@ -18,7 +19,8 @@ import { UtilsService } from './utils.service';
     StoreService,
     ProjectService,
     InjectionService,
-    UtilsService
+    UtilsService,
+    FileService
   ]
 })
 export class CoreModule { }

@@ -1,6 +1,10 @@
-import { Component, OnInit, Input, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { StoreService } from '../../core/store.service';
-import { MenuService } from '../../shared/menu.service';
+import { FileService } from '../../core/file.service';
+import { ProjectService } from '../../core/project.service';
+import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
+import * as forEach from 'lodash/forEach';
+import * as remove from 'lodash/remove';
 
 @Component({
   selector: 'app-file',
@@ -11,6 +15,7 @@ export class FileComponent implements OnInit {
 
   @Input() file;
   @Input() path;
+  @Output() onDelete: EventEmitter<any> = new EventEmitter();
 
   files;
   filePath = [];
@@ -26,7 +31,9 @@ export class FileComponent implements OnInit {
 
   constructor(
     private store: StoreService,
-    private menuService: MenuService
+    private uiUtils: SharedUiUtilsService,
+    private fileService: FileService,
+    private projectService: ProjectService
   ) { }
 
   ngOnInit() {
@@ -61,6 +68,15 @@ export class FileComponent implements OnInit {
 
   onRenamed() {
     this.isRename = false;
+  }
+
+  onInnerDelete(data) {
+    if (!data.wasDeleted) {
+      remove(this.files, data.file);
+      data.wasDeleted = true;
+    }
+
+    this.onDelete.emit(data);
   }
 
   private getInnerFiles() {
@@ -100,10 +116,15 @@ export class FileComponent implements OnInit {
       {
         title: 'Rename',
         type: 'rename'
+      },
+      {
+        title: 'Delete',
+        type: 'delete',
+        class: 'delete'
       }
     ];
 
-    this.menuService.openMenu({
+    this.uiUtils.openMenu({
       items: menuItems,
       event: ev
     }).subscribe(evType => {
@@ -116,6 +137,48 @@ export class FileComponent implements OnInit {
       if (evType === 'rename') {
         this.isRename = true;
       }
+
+      if (evType === 'delete') {
+        this.confirmDelete();
+      }
+    });
+  }
+
+  private confirmDelete() {
+    let title;
+    if (this.isGroup) {
+      title = 'group';
+    } else if (this.isFile) {
+      title = 'file';
+    }
+    this.uiUtils.confirmDelete({title})
+      .subscribe((isSure) => {
+        if (isSure) {
+          this.deleteFile();
+        }
+      });
+  }
+
+  private deleteFile() {
+    const { deletedGuids, selectedFile } = this.fileService.getDeletedGuidsAndSelection(this.file);
+
+    const changes = [];
+
+    forEach(deletedGuids, guid => {
+      changes.push({
+        guid,
+        changes: {
+          isDeleted: true
+        }
+      });
+    });
+
+    this.projectService.saveChange(changes);
+
+    this.onDelete.emit({
+      file: this.file,
+      deletedGuids,
+      selectedFile
     });
   }
 

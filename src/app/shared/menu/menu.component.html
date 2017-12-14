@@ -1,4 +1,4 @@
 <div class="menu-mask" (click)="close()"></div>
 <section class="menu-body">
-  <button class="menu-item" *ngFor="let item of items" (click)="select(item)">{{ item.title }}</button>
+  <button class="menu-item" [ngClass]="item.class" *ngFor="let item of items" (click)="select(item)">{{ item.title }}</button>
 </section>
