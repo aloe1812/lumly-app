@@ -1,22 +1,25 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { MenuService } from './menu.service';
+import { SharedUiUtilsService } from './shared-ui-utils.service';
 
 import { MenuComponent } from './menu/menu.component';
+import { ConfirmDeleteComponent } from './confirm-delete/confirm-delete.component';
 
 @NgModule({
   imports: [
     CommonModule
   ],
   declarations: [
-    MenuComponent
+    MenuComponent,
+    ConfirmDeleteComponent
   ],
   providers: [
-    MenuService
+    SharedUiUtilsService
   ],
   entryComponents: [
-    MenuComponent
+    MenuComponent,
+    ConfirmDeleteComponent
   ]
 })
 export class SharedModule { }

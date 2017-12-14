@@ -21,6 +21,11 @@ export class MenuComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit() {
+    this.items.forEach(item => {
+      if (!item.class) {
+        item.class = '';
+      }
+    });
   }
 
   ngAfterViewInit() {

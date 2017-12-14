@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, ViewEncapsulation } from '@angular/core';
 import { StoreService } from '../../core/store.service';
-import { MenuService } from '../../shared/menu.service';
+import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
 
 @Component({
   selector: 'app-file',
@@ -26,7 +26,7 @@ export class FileComponent implements OnInit {
 
   constructor(
     private store: StoreService,
-    private menuService: MenuService
+    private uiUtils: SharedUiUtilsService
   ) { }
 
   ngOnInit() {
@@ -100,10 +100,15 @@ export class FileComponent implements OnInit {
       {
         title: 'Rename',
         type: 'rename'
+      },
+      {
+        title: 'Delete',
+        type: 'delete',
+        class: 'delete'
       }
     ];
 
-    this.menuService.openMenu({
+    this.uiUtils.openMenu({
       items: menuItems,
       event: ev
     }).subscribe(evType => {
@@ -116,7 +121,26 @@ export class FileComponent implements OnInit {
       if (evType === 'rename') {
         this.isRename = true;
       }
+
+      if (evType === 'delete') {
+        this.confirmDelete();
+      }
     });
+  }
+
+  private confirmDelete() {
+    let title;
+    if (this.isGroup) {
+      title = 'group';
+    } else if (this.isFile) {
+      title = 'file';
+    }
+    this.uiUtils.confirmDelete({title})
+      .subscribe((isSure) => {
+        if (isSure) {
+          console.log('delete!');
+        }
+      });
   }
 
 }
