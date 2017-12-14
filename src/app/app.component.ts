@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { SvgIconService } from './svg-icon/svg-icon.service';
+import { StoreService } from './core/store.service';
 import * as forEach from 'lodash/forEach';
 
 @Component({
@@ -8,6 +9,8 @@ import * as forEach from 'lodash/forEach';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+
+  isAddFolderOpen = false;
 
   private icons = [
     ['file', 'assets/icons/file.svg'],
@@ -19,11 +22,24 @@ export class AppComponent {
   ];
 
   constructor(
-    private svgIconService: SvgIconService
+    private svgIconService: SvgIconService,
+    private store: StoreService
   ) {
     forEach(this.icons, icon => {
       svgIconService.registerIcon(icon);
     });
+
+    this.subscribeToSidenavEvents();
+  }
+
+  private subscribeToSidenavEvents() {
+    this.store.event('Folder:Add').get().subscribe(() => {
+      this.isAddFolderOpen = true;
+    });
+  }
+
+  onSidenavHidden() {
+    this.isAddFolderOpen = false;
   }
 
 }

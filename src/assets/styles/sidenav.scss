@@ -1,0 +1,45 @@
+@import './variables';
+
+.sidenav-container {
+  .sidenav-backdrop {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    z-index: 40;
+    background: #000;
+    display: block;
+    visibility: hidden;
+  }
+  .sidenav-content {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 45;
+    outline: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
+    transform: translate3d(-100%, 0, 0);
+    background-color: #fff;
+  }
+}
+
+.default-sidenav {
+  display: flex;
+  height: 100%;
+  width: 400px;
+  color: #fff;
+  background: $sidenav-back;
+  flex-direction: column;
+  overflow: auto;
+
+  &.size-400 {
+    width: 400px;
+  }
+}
+
+.default-sidenav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+}

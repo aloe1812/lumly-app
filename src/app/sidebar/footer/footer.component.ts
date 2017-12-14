@@ -64,6 +64,10 @@ export class FooterComponent implements OnInit {
         if (evType === 'add-file') {
           this.addFile();
         }
+
+        if (evType === 'add-folder') {
+          this.store.event('Folder:Add').emit();
+        }
       });
   }
 
