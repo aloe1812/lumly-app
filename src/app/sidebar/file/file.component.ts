@@ -35,6 +35,11 @@ export class FileComponent implements OnInit {
     if (this.isGroup) {
       this.getInnerFiles();
     }
+
+    if (this.file._immediateSelect) {
+      delete this.file._immediateSelect;
+      this.select();
+    }
   }
 
   onClick() {
