@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { InjectionService } from '../../core/injection.service';
 import { AddMenuComponent } from '../../sidebar/add-menu/add-menu.component';
+import { ProjectService } from 'app/core/project.service';
 
 @Component({
   selector: 'app-footer',
@@ -14,7 +15,8 @@ export class FooterComponent implements OnInit {
 
   constructor(
     private store: StoreService,
-    private injector: InjectionService
+    private injector: InjectionService,
+    private projectService: ProjectService
   ) { }
 
   ngOnInit() {
@@ -59,8 +61,30 @@ export class FooterComponent implements OnInit {
           return;
         }
 
-        console.log(evType);
-      })
+        if (evType === 'add-file') {
+          this.addFile();
+        }
+      });
+  }
+
+  private addFile() {
+    const file = {
+      type: 'file',
+      guid: ++this.project.project.guidCounter,
+      title: 'Untitled',
+      isNew: true,
+      content: '',
+      _immediateSelect: true
+    };
+
+    this.project.content.files.push(file);
+
+    this.projectService.saveChange({
+      guid: file.guid,
+      changes: {
+        isNew: true
+      }
+    });
   }
 
 }

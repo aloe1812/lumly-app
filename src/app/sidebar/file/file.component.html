@@ -3,7 +3,7 @@
   [ngClass]="{
     toggled: file.isToggled,
     'is-group': isGroup,
-    changed: !isRename && (file.isChanged || file.isTitleChanged),
+    changed: !isRename && (file.isChanged || file.isTitleChanged || file.isNew),
     toggled: file.isToggled,
     selected: file.isSelected,
     hovered: isHovered

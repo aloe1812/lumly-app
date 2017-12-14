@@ -121,6 +121,7 @@ export class ProjectService {
           file.originalContent = file.content;
         }
 
+        file.isNew = false;
         file.isTitleChanged = false;
         file.originalTitle = file.title;
 
