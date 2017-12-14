@@ -7,5 +7,13 @@
   width: 250px;
   background: rgb(252, 252, 252);
   border-right: 1px solid $divider-color;
+}
+
+app-project {
+  flex: 1 1 auto;
   overflow: auto;
+}
+
+app-footer {
+  flex: 0 0 auto;
 }
