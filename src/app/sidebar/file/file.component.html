@@ -24,5 +24,6 @@
     *ngFor="let file of files"
     [file]="file"
     [path]="filePath"
+    (onDelete)="onInnerDelete($event)"
   ></app-file>
 </div>
