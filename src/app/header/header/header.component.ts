@@ -23,6 +23,7 @@ export class HeaderComponent implements OnInit {
   ngOnInit() {
     this.subscribeToElectronEvents();
     this.subscribeToProjectChanges();
+    this.subscribeToActiveProject();
   }
 
   openProject() {
@@ -41,17 +42,13 @@ export class HeaderComponent implements OnInit {
   private subscribeToElectronEvents() {
     this.electronService.ipcRenderer.on('Project:Opened', (event, data) => {
       try {
-        this.project = JSON.parse(data.file);
-
-        if (!this.projectService.isProjectValid(this.project)) {
-          throw Error;
-        }
+        this.project = this.projectService.parseProjectFile(data.file)
 
         this.project.project.path = data.path;
 
         this.projectService.prepareProject(this.project);
-        this.store.data('Project:Active').set(this.project);
-        this.openProjectTitle = this.project.project.title;
+        this.projectService.storeProject(this.project);
+        this.projectService.setActive(this.project);
       } catch (e) {
         alert('Provided file is incorrect or damaged');
       }
@@ -71,9 +68,17 @@ export class HeaderComponent implements OnInit {
   }
 
   private subscribeToProjectChanges() {
-    this.projectService.onProjectHasChanges.subscribe(hasChanges => {
+    this.store.data('Project:Active:HasChanges').get().subscribe(hasChanges => {
       this.isProjectHasChanges = hasChanges;
     });
+  }
+
+  private subscribeToActiveProject() {
+    this.store.data('Project:Active').get().subscribe(
+      (project) => {
+        this.openProjectTitle = project ? project.project.title : 'Open Project';
+      }
+    )
   }
 
 }

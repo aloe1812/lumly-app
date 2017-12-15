@@ -33,20 +33,24 @@ export class AddProjectComponent implements OnInit {
   }
 
   addProject() {
+    if (!this.projectNameCtrl.value) {
+      this.sidenav.hide();
+    }
+
+    const project = {
+      project: {
+        title: this.projectNameCtrl.value
+      },
+      content: {
+        files: []
+      }
+    };
+
+    this.projectService.prepareProject(project, true);
+    this.projectService.storeProject(project);
+    this.projectService.setActive(project);
+
     this.sidenav.hide();
-
-    // if (!this.projectNameCtrl.value) {
-    //   this.sidenav.hide();
-    // }
-
-    // const project = {
-    //   project: {
-    //     title: this.projectNameCtrl.value
-    //   },
-    //   content: {
-    //     files: []
-    //   }
-    // };
   }
 
 }

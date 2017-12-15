@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
+import { StoreService } from 'app/core/store.service';
 
 import * as forEach from 'lodash/forEach';
+import * as findIndex from 'lodash/findIndex';
 import * as isEmpty from 'lodash/isEmpty';
 import * as has from 'lodash/has';
 import * as isArray from 'lodash/isArray';
@@ -10,13 +11,23 @@ import * as isString from 'lodash/isString';
 @Injectable()
 export class ProjectService {
 
+  private projects = [];
   private activeProject;
   private lastChangesStatus = false;
 
-  private changesSub = new Subject<any>();
-  public onProjectHasChanges = this.changesSub.asObservable();
+  constructor(
+    private store: StoreService
+  ) { }
 
-  constructor() { }
+  parseProjectFile(file) {
+    const project = JSON.parse(file);
+
+    if (!this.isProjectValid(project)) {
+      throw Error;
+    }
+
+    return project;
+  }
 
   isProjectValid(project) {
     if ( !(has(project, 'project') && has(project, 'content') && has(project, 'project.title') && has(project, 'content.files')) ) {
@@ -34,14 +45,42 @@ export class ProjectService {
     return true;
   }
 
-  prepareProject(project) {
+  storeProject(project) {
+    if ( !has(project, 'project.path') ) {
+      this.projects.push(project);
+      return;
+    }
+
+    const storedIndex = findIndex(this.projects, storedProject => storedProject.project.path === project.project.path);
+
+    if (storedIndex === -1) {
+      this.projects.push(project);
+    } else {
+      this.projects[storedIndex] = project;
+    }
+  }
+
+  setActive(project) {
     this.activeProject = project;
-
-    project.project.changes = {};
-    project.project.guidCounter = 0;
-    setFilesGuid(project.content.files);
-
     this.checkProjectChangesStatus(true);
+
+    this.store.data('Project:Active').set(project);
+  }
+
+  prepareProject(project, isNew = false) {
+    if (isNew) {
+      project.project.changes = {
+        'PROJECT_SELF': {
+          isNew: true
+        }
+      };
+    } else {
+      project.project.changes = {};
+    }
+
+    project.project.guidCounter = 0;
+
+    setFilesGuid(project.content.files);
 
     function setFilesGuid(files) {
       forEach(files, file => {
@@ -63,11 +102,11 @@ export class ProjectService {
     forEach(changes, change => {
       if ( !(change.guid in changesStore) ) {
         changesStore[change.guid] = change.changes;
+      } else {
+        forEach(change.changes, (value, key) => {
+          changesStore[change.guid][key] = value;
+        });
       }
-
-      forEach(change.changes, (value, key) => {
-        changesStore[change.guid][key] = value;
-      });
 
       // удаляем запись об изменении, если прокт был новым, а потом был удален
       if (changesStore[change.guid].isNew && changesStore[change.guid].isDeleted) {
@@ -132,7 +171,7 @@ export class ProjectService {
     updateFiles(this.activeProject.content.files);
 
     this.lastChangesStatus = false;
-    this.changesSub.next(false);
+    this.store.data('Project:Active:HasChanges').set(false);
 
     function updateFiles(files) {
       forEach(files, (file) => {
@@ -157,7 +196,7 @@ export class ProjectService {
 
     if (forceChange || (isProjectHasChanges !== this.lastChangesStatus)) {
       this.lastChangesStatus = isProjectHasChanges;
-      this.changesSub.next(isProjectHasChanges);
+      this.store.data('Project:Active:HasChanges').set(isProjectHasChanges);
     }
   }
 
