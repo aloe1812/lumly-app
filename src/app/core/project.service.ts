@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
+
 import * as forEach from 'lodash/forEach';
 import * as isEmpty from 'lodash/isEmpty';
+import * as has from 'lodash/has';
+import * as isArray from 'lodash/isArray';
+import * as isString from 'lodash/isString';
 
 @Injectable()
 export class ProjectService {
@@ -13,6 +17,22 @@ export class ProjectService {
   public onProjectHasChanges = this.changesSub.asObservable();
 
   constructor() { }
+
+  isProjectValid(project) {
+    if ( !(has(project, 'project') && has(project, 'content') && has(project, 'project.title') && has(project, 'content.files')) ) {
+      return false;
+    }
+
+    if (!isString(project.project.title)) {
+      return false;
+    }
+
+    if (!isArray(project.content.files)) {
+      return false;
+    }
+
+    return true;
+  }
 
   prepareProject(project) {
     this.activeProject = project;

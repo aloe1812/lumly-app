@@ -42,7 +42,13 @@ export class HeaderComponent implements OnInit {
     this.electronService.ipcRenderer.on('Project:Opened', (event, data) => {
       try {
         this.project = JSON.parse(data.file);
+
+        if (!this.projectService.isProjectValid(this.project)) {
+          throw Error;
+        }
+
         this.project.project.path = data.path;
+
         this.projectService.prepareProject(this.project);
         this.store.data('Project:Active').set(this.project);
         this.openProjectTitle = this.project.project.title;
