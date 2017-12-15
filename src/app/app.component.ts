@@ -11,6 +11,7 @@ import * as forEach from 'lodash/forEach';
 export class AppComponent {
 
   isAddFolderOpen = false;
+  isAddProjectOpen = false;
 
   private icons = [
     ['file', 'assets/icons/file.svg'],
@@ -36,10 +37,14 @@ export class AppComponent {
     this.store.event('Folder:Add').get().subscribe(() => {
       this.isAddFolderOpen = true;
     });
+    this.store.event('Project:Add').get().subscribe(() => {
+      this.isAddProjectOpen = true;
+    });
   }
 
   onSidenavHidden() {
     this.isAddFolderOpen = false;
+    this.isAddProjectOpen = false;
   }
 
 }

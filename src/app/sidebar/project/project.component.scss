@@ -1,0 +1,17 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  position: relative;
+}
+
+.project-empty {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 50%;
+  color: $darker;
+  opacity: 0.32;
+  font-size: 14px;
+  margin-top: 30px;
+  transform: translateY(-50%);
+}

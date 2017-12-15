@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { AddFolderComponent } from './add-folder/add-folder.component';
+import { AddProjectComponent } from './add-project/add-project.component';
 
 @NgModule({
   imports: [
@@ -13,11 +14,13 @@ import { AddFolderComponent } from './add-folder/add-folder.component';
   ],
   declarations: [
     SidenavComponent,
-    AddFolderComponent
+    AddFolderComponent,
+    AddProjectComponent
   ],
   exports: [
     SidenavComponent,
-    AddFolderComponent
+    AddFolderComponent,
+    AddProjectComponent
   ]
 })
 export class SidenavModule { }
