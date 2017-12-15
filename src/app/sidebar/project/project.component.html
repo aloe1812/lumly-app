@@ -6,3 +6,4 @@
     (onDelete)="onFilesDelete($event)"
   ></app-file>
 </div>
+<div *ngIf="files && !files.length" class="project-empty">Add files to project</div>
