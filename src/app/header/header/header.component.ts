@@ -33,10 +33,17 @@ export class HeaderComponent implements OnInit {
   saveProject() {
     const projectData = this.projectService.getProjectDataForSave();
 
-    this.electronService.ipcRenderer.send('Project:Save', {
-      path: this.project.project.path,
-      file: JSON.stringify(projectData)
-    });
+    if (this.project.project.path) {
+      this.electronService.ipcRenderer.send('Project:Save', {
+        path: this.project.project.path,
+        file: JSON.stringify(projectData)
+      });
+    } else {
+      this.electronService.ipcRenderer.send('Project:SaveAs', {
+        file: JSON.stringify(projectData),
+        fileName: projectData.project.title
+      });
+    }
   }
 
   private subscribeToElectronEvents() {
@@ -58,12 +65,15 @@ export class HeaderComponent implements OnInit {
       alert(`File extension is incorrect. Must be 'lumly'`);
     });
 
-    this.electronService.ipcRenderer.on('Project:Saved', () => {
+    this.electronService.ipcRenderer.on('Project:Saved', (event, path) => {
+      if (path) {
+        this.project.project.path = path;
+      }
       this.projectService.updateProjectAfterSave();
     });
 
     this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
-      alert('There was error on saving file');
+      alert('There was an error on saving file');
     });
   }
 
@@ -76,6 +86,7 @@ export class HeaderComponent implements OnInit {
   private subscribeToActiveProject() {
     this.store.data('Project:Active').get().subscribe(
       (project) => {
+        this.project = project;
         this.openProjectTitle = project ? project.project.title : 'Open Project';
       }
     )

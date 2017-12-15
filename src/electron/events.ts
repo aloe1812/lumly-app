@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, app } from 'electron';
 import * as fs from 'fs';
 
 export class AppEvents {
@@ -68,6 +68,29 @@ export class AppEvents {
         };
 
         this.win.webContents.send('Project:Saved');
+      });
+    });
+
+    ipcMain.on('Project:SaveAs', (event, data) => {
+      dialog.showSaveDialog({
+        title: 'Save project',
+        defaultPath: `${app.getPath('downloads')}/${ data.fileName || 'project' }.lumly`,
+        filters: [
+          { name: '', extensions: ['lumly'] }
+        ]
+      }, (filePath) => {
+        if (filePath === undefined) {
+          return;
+        }
+
+        // save file
+        fs.writeFile(filePath, data.file, (error) => {
+          if (error) {
+            this.win.webContents.send('Project:Saved:Error');
+            throw error;
+          };
+          this.win.webContents.send('Project:Saved', filePath);
+        });
       });
     });
   }
