@@ -9,4 +9,5 @@
 </div>
 <app-sidenav #sidenav (onHidden)="onSidenavHidden()">
   <app-add-folder *ngIf="isAddFolderOpen" [sidenav]="sidenav"></app-add-folder>
+  <app-add-project *ngIf="isAddProjectOpen" [sidenav]="sidenav"></app-add-project>
 </app-sidenav>

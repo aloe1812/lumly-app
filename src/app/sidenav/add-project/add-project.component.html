@@ -1,0 +1,12 @@
+<header class="sidenav-header">
+  <div class="title">Add new project</div>
+  <div class="actions">
+    <button class="default-button button-success" [disabled]="!projectNameCtrl.value" (click)="addProject()">Save</button>
+  </div>
+</header>
+<div class="sidenav-body">
+  <div class="default-form-group">
+    <label for="project-name">Project name</label>
+    <input type="text" id="project-name" [formControl]="projectNameCtrl" name="project-name" placeholder="Name">
+  </div>
+</div>
