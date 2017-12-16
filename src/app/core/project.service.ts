@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
+import { ElectronService } from 'app/core/electron.service';
+import { Subject } from 'rxjs/Subject';
 
 import * as forEach from 'lodash/forEach';
 import * as findIndex from 'lodash/findIndex';
@@ -11,13 +13,20 @@ import * as isString from 'lodash/isString';
 @Injectable()
 export class ProjectService {
 
-  private projects = [];
-  private activeProject;
+  public projects = [];
+  public activeProject;
+
+  private projectOpenedSub = new Subject();
+  public projectOpened = this.projectOpenedSub.asObservable();
+
   private lastChangesStatus = false;
 
   constructor(
-    private store: StoreService
-  ) { }
+    private store: StoreService,
+    private electronService: ElectronService
+  ) {
+    this.subscribeToElectronEvents();
+  }
 
   parseProjectFile(file) {
     const project = JSON.parse(file);
@@ -191,6 +200,26 @@ export class ProjectService {
     }
   }
 
+  openProject() {
+    this.electronService.ipcRenderer.send('Open:Project');
+  }
+
+  saveProject() {
+    const projectData = this.getProjectDataForSave();
+
+    if (this.activeProject.project.path) {
+      this.electronService.ipcRenderer.send('Project:Save', {
+        path: this.activeProject.project.path,
+        file: JSON.stringify(projectData)
+      });
+    } else {
+      this.electronService.ipcRenderer.send('Project:SaveAs', {
+        file: JSON.stringify(projectData),
+        fileName: projectData.project.title
+      });
+    }
+  }
+
   private checkProjectChangesStatus(forceChange = false) {
     const isProjectHasChanges = !isEmpty(this.activeProject.project.changes);
 
@@ -198,6 +227,46 @@ export class ProjectService {
       this.lastChangesStatus = isProjectHasChanges;
       this.store.data('Project:Active:HasChanges').set(isProjectHasChanges);
     }
+  }
+
+  private subscribeToElectronEvents() {
+
+    // Событие после того как проект был открыт
+    this.electronService.ipcRenderer.on('Project:Opened', (event, data) => {
+      try {
+        const project = this.parseProjectFile(data.file)
+
+        project.project.path = data.path;
+
+        this.prepareProject(project);
+        this.storeProject(project);
+        this.setActive(project);
+
+        this.projectOpenedSub.next();
+      } catch (e) {
+        alert('Provided file is incorrect or damaged');
+      }
+    });
+
+    // Ошибка после попытки открытия проекта: неверное расширение файла
+    this.electronService.ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
+      alert(`File extension is incorrect. Must be 'lumly'`);
+    });
+
+    // Событие после того как проект был сохранен
+    this.electronService.ipcRenderer.on('Project:Saved', (event, path) => {
+      // if path was created (i.e. locally created project was saved)
+      if (path) {
+        this.activeProject.project.path = path;
+      }
+
+      this.updateProjectAfterSave();
+    });
+
+    // Ошибка при сохранении файла
+    this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
+      alert('There was an error on saving file');
+    });
   }
 
 }

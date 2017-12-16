@@ -12,6 +12,7 @@ export class AppComponent {
 
   isAddFolderOpen = false;
   isAddProjectOpen = false;
+  isProjectsListOpen = false;
 
   private icons = [
     ['file', 'assets/icons/file.svg'],
@@ -19,7 +20,8 @@ export class AppComponent {
     ['expand-arrow', 'assets/icons/expand-arrow.svg'],
     ['beach-ball', 'assets/icons/beach-ball.svg'],
     ['plus', 'assets/icons/plus.svg'],
-    ['view-bars', 'assets/icons/view-bars.svg']
+    ['view-bars', 'assets/icons/view-bars.svg'],
+    ['more', 'assets/icons/more.svg']
   ];
 
   constructor(
@@ -40,11 +42,15 @@ export class AppComponent {
     this.store.event('Project:Add').get().subscribe(() => {
       this.isAddProjectOpen = true;
     });
+    this.store.event('Projects:List').get().subscribe(() => {
+      this.isProjectsListOpen = true;
+    });
   }
 
   onSidenavHidden() {
     this.isAddFolderOpen = false;
     this.isAddProjectOpen = false;
+    this.isProjectsListOpen = false;
   }
 
 }
