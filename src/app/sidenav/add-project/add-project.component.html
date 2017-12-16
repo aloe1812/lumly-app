@@ -1,5 +1,8 @@
 <header class="sidenav-header">
-  <div class="title">Add new project</div>
+  <div class="title-wrap">
+    <button class="simple-btn back-button" *ngIf="isInner" (click)="goBack()"><svg-icon icon="expand-arrow"></svg-icon></button>
+    <div class="title">Add new project</div>
+  </div>
   <div class="actions">
     <button class="default-button button-success" [disabled]="!projectNameCtrl.value" (click)="addProject()">Save</button>
   </div>

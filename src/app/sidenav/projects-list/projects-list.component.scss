@@ -1,9 +1,26 @@
 @import '../../../assets/styles/variables';
 
 :host {
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  background: transparent;
+}
+
+.level-1 {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   width: 280px;
   background: #1A1A1A;
   color: $light;
+  position: relative;
+  z-index: 1;
+}
+
+.level-2 {
+  display: flex;
+  width: 0;
 }
 
 .sidenav-header {

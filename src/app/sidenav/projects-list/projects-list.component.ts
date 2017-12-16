@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { ProjectService } from 'app/core/project.service';
+import { trigger, state, style, animate, transition } from '@angular/animations';
 
 import * as forEach from 'lodash/forEach';
 import * as clone from 'lodash/clone';
@@ -9,7 +10,22 @@ import * as clone from 'lodash/clone';
   selector: 'app-projects-list',
   templateUrl: './projects-list.component.html',
   styleUrls: ['./projects-list.component.scss'],
-  host: {'class': 'default-sidenav'}
+  host: {'class': 'default-sidenav'},
+  animations: [
+    trigger('innerSidenavState', [
+      state('hidden', style({
+        display: 'none',
+        visibility: 'hidden',
+        transform: 'translate3d(-100%, 0, 0)'
+      })),
+      state('shown', style({
+        display: 'block',
+        visibility: 'visible',
+        transform: 'translate3d(0, 0, 0)'
+      })),
+      transition('* => *', animate('150ms ease'))
+    ])
+  ]
 })
 export class ProjectsListComponent implements OnInit {
 
@@ -20,13 +36,28 @@ export class ProjectsListComponent implements OnInit {
 
   projectsFilesCount = [];
 
+  innerSidenavState = 'hidden';
+  isInnerOpen = false;
+  fakeSidenavRef = {
+    show: () => {
+      this.innerSidenavState = 'shown';
+    },
+    hide: (isCreated) => {
+      if (isCreated) {
+        this.sidenav.hide();
+      } else {
+        this.innerSidenavState = 'hidden';
+      }
+    }
+  };
+
   constructor(
     private projectService: ProjectService
   ) { }
 
   @HostListener('document:keydown', ['$event'])
   handleKeyEvent($event: KeyboardEvent) {
-    if ($event.keyCode === 27) {
+    if (!this.isInnerOpen && $event.keyCode === 27) {
       $event.preventDefault();
       this.sidenav.hide();
     }
@@ -54,6 +85,20 @@ export class ProjectsListComponent implements OnInit {
     if (project !== this.activeProject) {
       this.projectService.setActive(project);
       this.sidenav.hide();
+    }
+  }
+
+  triggerInnerOpen() {
+    this.isInnerOpen = true;
+  }
+
+  animationDone(ev) {
+    if (ev.fromState === 'void' && ev.toState === 'hidden') {
+      ev.element.style.width = '400px';
+    }
+
+    if (ev.fromState === 'shown' && ev.toState === 'hidden') {
+      this.isInnerOpen = false;
     }
   }
 
