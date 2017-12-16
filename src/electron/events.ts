@@ -1,5 +1,6 @@
 import { ipcMain, dialog, app } from 'electron';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export class AppEvents {
 
@@ -34,9 +35,8 @@ export class AppEvents {
         }
 
         const filePath = filePaths[0];
-        const ext = this.getFileExtensionByPath(filePath);
 
-        if (ext !== 'lumly') {
+        if (path.extname(filePath) !== '.lumly') {
           this.win.webContents.send('Project:Opened:Error:Extenstion');
           return;
         }
@@ -56,19 +56,32 @@ export class AppEvents {
     });
   }
 
-  // TODO: 1. добавить лог, 2. оно создаст файл, если в текущем его нету
-  // 3. проверить, если нету папки?
-  // 4. может вообще проверять существует путь и если нету, то показывать сохранить как
+  // TODO: добавить лог
   private registerSaveProjectEvent() {
     ipcMain.on('Project:Save', (event, data) => {
-      fs.writeFile(data.path, data.file, (error) => {
-        if (error) {
-          this.win.webContents.send('Project:Saved:Error');
-          throw error;
-        };
 
-        this.win.webContents.send('Project:Saved');
-      });
+      // проверяем что пусть существует
+      fs.stat(data.path, (errorExist) => {
+
+        if (errorExist) {
+          this.win.webContents.send('Project:Saved:Error:Exist', {
+            file: data.file,
+            path: data.path,
+            fileName: path.basename(data.path, '.lumly')
+          });
+          return;
+        }
+
+        fs.writeFile(data.path, data.file, (errorWrite) => {
+          if (errorWrite) {
+            this.win.webContents.send('Project:Saved:Error');
+            return;
+          };
+
+          this.win.webContents.send('Project:Saved');
+        });
+      })
+
     });
 
     ipcMain.on('Project:SaveAs', (event, data) => {
@@ -87,16 +100,12 @@ export class AppEvents {
         fs.writeFile(filePath, data.file, (error) => {
           if (error) {
             this.win.webContents.send('Project:Saved:Error');
-            throw error;
+            return;
           };
           this.win.webContents.send('Project:Saved', filePath);
         });
       });
     });
-  }
-
-  private getFileExtensionByPath(filename) {
-    return filename.substring(filename.lastIndexOf('.') + 1, filename.length) || filename;
   }
 
 }

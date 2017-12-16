@@ -267,6 +267,16 @@ export class ProjectService {
     this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
       alert('There was an error on saving file');
     });
+
+    // Ошибка, если файл не существует в том месте, откуда был изначально открыт
+    this.electronService.ipcRenderer.on('Project:Saved:Error:Exist', (event, data) => {
+      alert('Error: Cannot find path. Perhaps project file was relocated. Please, select where to save project file.');
+
+      this.electronService.ipcRenderer.send('Project:SaveAs', {
+        file: data.file,
+        fileName: data.fileName || data.file.project.title
+      });
+    });
   }
 
 }
