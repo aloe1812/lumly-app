@@ -1,0 +1,27 @@
+<div class="level-1">
+  <header class="sidenav-header">
+    <div class="title">Projects</div>
+    <div class="actions">
+      <button class="button-link" (click)="openProject()">Open file</button>
+    </div>
+  </header>
+  <div class="sidenav-body">
+    <div class="projects-list">
+      <div class="project" *ngFor="let project of projects; let index = index;" [class.selected]="project === activeProject" (click)="selectProject(project)">
+        <div class="head">
+          <div class="title">{{ project.project.title }}</div>
+          <!-- <div class="actions" *ngIf="project !== activeProject">
+            <button class="simple-btn"><svg-icon icon="more"></svg-icon></button>
+          </div> -->
+        </div>
+        <div class="meta">{{ projectsFilesCount[index] || 'No' }} files</div>
+      </div>
+    </div>
+  </div>
+  <footer class="sidenav-footer">
+    <button class="simple-btn btn-add" (click)="triggerInnerOpen()"><svg-icon icon="plus"></svg-icon></button>
+  </footer>
+</div>
+<div class="level-2" [@innerSidenavState]="innerSidenavState" (@innerSidenavState.done)="animationDone($event)">
+  <app-add-project *ngIf="isInnerOpen" [sidenav]="fakeSidenavRef" isInner></app-add-project>
+</div>

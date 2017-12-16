@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, HostListener, ViewEncapsulation } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { SidenavComponent } from '../sidenav/sidenav.component';
 import { ProjectService } from '../../core/project.service';
 
 @Component({
@@ -12,7 +11,8 @@ import { ProjectService } from '../../core/project.service';
 })
 export class AddProjectComponent implements OnInit {
 
-  @Input() sidenav: SidenavComponent;
+  @Input() sidenav: any;
+  @Input() isInner: boolean;
 
   projectNameCtrl = new FormControl();
 
@@ -29,6 +29,12 @@ export class AddProjectComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    if (this.isInner === undefined) {
+      this.isInner = false;
+    } else {
+      this.isInner = true;
+    }
+
     this.sidenav.show();
   }
 
@@ -50,6 +56,10 @@ export class AddProjectComponent implements OnInit {
     this.projectService.storeProject(project);
     this.projectService.setActive(project);
 
+    this.sidenav.hide(true);
+  }
+
+  goBack() {
     this.sidenav.hide();
   }
 

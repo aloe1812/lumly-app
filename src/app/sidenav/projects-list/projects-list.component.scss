@@ -1,0 +1,129 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  background: transparent;
+}
+
+.level-1 {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 280px;
+  background: #1A1A1A;
+  color: $light;
+  position: relative;
+  z-index: 1;
+}
+
+.level-2 {
+  display: flex;
+  width: 0;
+}
+
+.sidenav-header {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  padding: 0 16px;
+  .title {
+    font-size: 13px;
+  }
+  .button-link {
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    color: $green;
+    cursor: pointer;
+    &:focus {
+      outline: none;
+    }
+    &:hover {
+      color: lighten($green, 15%);
+    }
+  }
+}
+
+.sidenav-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 4px 16px;
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.sidenav-footer {
+  flex: 0 0 auto;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  .btn-add {
+    color: $light;
+    .svg-icon {
+      width: 16px;
+      height: 16px;
+    }
+    &:hover {
+      color: lighten($light, 15%);
+    }
+  }
+}
+
+.project {
+  padding: 13px 16px 13px;
+  background-color: $darker;
+  border-radius: 4px;
+  &:not(:last-child) {
+    margin-bottom: 10px;
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    button {
+      color: #BDBDBD;
+      display: none;
+      .svg-icon {
+        width: 14px;
+        height: 14px;
+      }
+      &:hover {
+        color: lighten(#BDBDBD, 15%);
+      }
+    }
+  }
+  .title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+  }
+  .meta {
+    margin-top: 5px;
+    font-size: 11px;
+    color: $grey;
+  }
+  &:hover {
+    background-color: $dark;
+    cursor: pointer;
+    .head button {
+      display: block;
+    }
+  }
+  &.selected {
+    background-color: #308FFF;
+    color: #fff;
+    .meta {
+      color: inherit;
+    }
+    .head button {
+      display: none;
+    }
+  }
+}

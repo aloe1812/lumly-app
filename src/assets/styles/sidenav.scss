@@ -22,7 +22,7 @@
     box-sizing: border-box;
     overflow-y: auto;
     transform: translate3d(-100%, 0, 0);
-    background-color: #fff;
+    background-color: transparent;
   }
 }
 
@@ -54,6 +54,23 @@
     .title {
       color: $light;
       font-size: 12px;
+    }
+    .back-button {
+      margin-right: 14px;
+      margin-left: -6px;
+      .svg-icon {
+        stroke: $light;
+        transform: rotate(90deg);
+        width: 16px;
+        height: 16px;
+      }
+      &:hover .svg-icon {
+        stroke: lighten($light, 20%);
+      }
+    }
+    .title-wrap {
+      display: flex;
+      align-items: center;
     }
   }
 
