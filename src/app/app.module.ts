@@ -4,7 +4,9 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 
+import { AppRoutingModule } from 'app/app-routing.module';
 import { CoreModule } from './core/core.module';
+import { ScreensModule } from 'app/screens/screens.module';
 import { HeaderModule } from './header/header.module';
 import { SidebarModule } from './sidebar/sidebar.module';
 import { EditorModule } from './editor/editor.module';
@@ -18,7 +20,9 @@ import { SidenavModule } from './sidenav/sidenav.module';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    AppRoutingModule,
     CoreModule,
+    ScreensModule,
     HeaderModule,
     SidebarModule,
     EditorModule,

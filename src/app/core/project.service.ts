@@ -5,6 +5,9 @@ import { Subject } from 'rxjs/Subject';
 
 import * as forEach from 'lodash/forEach';
 import * as findIndex from 'lodash/findIndex';
+import * as unionWith from 'lodash/unionWith';
+import * as reverse from 'lodash/reverse';
+import * as remove from 'lodash/remove';
 import * as isEmpty from 'lodash/isEmpty';
 import * as has from 'lodash/has';
 import * as isArray from 'lodash/isArray';
@@ -15,6 +18,7 @@ export class ProjectService {
 
   public projects = [];
   public activeProject;
+  public recent;
 
   private projectOpenedSub = new Subject();
   public projectOpened = this.projectOpenedSub.asObservable();
@@ -204,6 +208,10 @@ export class ProjectService {
     this.electronService.ipcRenderer.send('Open:Project');
   }
 
+  openRecentProject(project) {
+    this.electronService.ipcRenderer.send('Open:Project:Recent', project);
+  }
+
   saveProject() {
     const projectData = this.getProjectDataForSave();
 
@@ -248,9 +256,20 @@ export class ProjectService {
       }
     });
 
+    // Ошибка при открытии файла
+    this.electronService.ipcRenderer.on('Project:Opened:Error', () => {
+      alert(`Error: Project file cannot be found`);
+    });
+
+    // Ошибка если не смог открытся недавний файл (это скорее всего из-за того что он удален)
+    this.electronService.ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
+      remove(this.recent, project);
+      alert(`Error: Project file cannot be found`);
+    });
+
     // Ошибка после попытки открытия проекта: неверное расширение файла
     this.electronService.ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
-      alert(`File extension is incorrect. Must be 'lumly'`);
+      alert(`Error: File extension is incorrect. Must be 'lumly'`);
     });
 
     // Событие после того как проект был сохранен
@@ -276,6 +295,37 @@ export class ProjectService {
         file: data.file,
         fileName: data.fileName || data.file.project.title
       });
+    });
+
+    // Сохраняем данные о недавних проектах
+    this.electronService.ipcRenderer.on('App:Before-Quit', () => {
+
+      const currentProjects = [];
+
+      // берем те которые у нас сейчас открыты (и у которых есть файл)
+      forEach(this.projects, project => {
+        if (project.project.path) {
+          currentProjects.push({
+            path: project.project.path
+          })
+        }
+      });
+
+      // меняем порядок, чтобы последние были сверху
+      reverse(currentProjects);
+
+      // соединяем с текущим списком недавних
+      let recentToSave = unionWith(currentProjects, this.recent, (val1, val2) => {
+        return val1.path === val2.path;
+      });
+
+      // обрезаем список, если проектов больше 8
+      if (recentToSave.length > 8) {
+        recentToSave = recentToSave.slice(0, 8);
+      }
+
+      // Отправляем на сохранение
+      this.electronService.ipcRenderer.send('Store:Save:Recent', recentToSave);
     });
   }
 

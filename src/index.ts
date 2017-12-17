@@ -1,5 +1,10 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
-import { AppEvents } from './electron/events'
+import { AppEvents } from './electron/events';
+import * as Store from 'electron-store';
+
+const store = new Store({
+  encryptionKey: 'Qpv54qjyyoZ6Ii3QZ3I6'
+});
 
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
@@ -24,12 +29,16 @@ function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     title: 'Lumly',
+    backgroundColor: '#111111',
     webPreferences: {
       nodeIntegration: true
     }
   });
 
-  appEvents.setWindow(mainWindow);
+  appEvents.setDependencies({
+    window: mainWindow,
+    store: store
+  });
 
   mainWindow.setMinimumSize(500, 300);
 
@@ -59,11 +68,7 @@ app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('activate', function () {
@@ -87,13 +92,4 @@ app.on('browser-window-created', function (event, win) {
 ipcMain.on('show-context-menu', function (event) {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
-});
-
-// Before Quit events
-app.on('window-all-closed', () => {
-  app.quit();
-});
-
-app.on('before-quit', () => {
-  mainWindow.webContents.send('App:Before-Quit');
 });

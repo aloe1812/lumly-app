@@ -1,0 +1,24 @@
+<div class="logo">
+  <svg-icon icon="logo"></svg-icon>
+</div>
+
+<div class="main">
+  <section class="add-project">
+    <div class="form-group">
+      <label for="project-name">Add new project</label>
+      <div class="input-wrap">
+        <input type="text" id="project-name" name="project-name" placeholder="Project name" [formControl]="projectNameCtrl" (keydown)="onKeydown($event)">
+        <button class="simple-btn btn-submit" (click)="addProject()"><svg-icon icon="expand-arrow"></svg-icon></button>
+      </div>
+    </div>
+  </section>
+  <section class="recent">
+    <header class="header">
+      <div class="title">Recent files</div>
+      <button class="button-link" (click)="openProject()">Open file</button>
+    </header>
+    <div class="list">
+      <div *ngFor="let project of recent" (click)="openRecent(project)">{{ project.title }}</div>
+    </div>
+  </section>
+</div>

@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 
@@ -8,6 +8,11 @@ import { ProjectService } from './project.service';
 import { InjectionService } from './injection.service';
 import { UtilsService } from './utils.service';
 import { FileService } from './file.service';
+import { InitializationService } from './initialization.service';
+
+export function initService(init: InitializationService) {
+  return () => init.initApp();
+}
 
 @NgModule({
   imports: [
@@ -20,7 +25,15 @@ import { FileService } from './file.service';
     ProjectService,
     InjectionService,
     UtilsService,
-    FileService
+    FileService,
+    InitializationService,
+
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initService,
+      deps: [InitializationService],
+      multi: true
+    }
   ]
 })
 export class CoreModule { }
