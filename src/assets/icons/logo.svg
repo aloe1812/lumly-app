@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg width="64" height="64" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Logotype</title>
+  <g id="Canvas" transform="translate(-688 -64)">
+    <g id="Logotype">
+      <g id="Rectangle">
+        <use xlink:href="#path0_fill" transform="translate(688 99.9024)" fill="#FFFFFF"/>
+      </g>
+      <g id="Rectangle">
+        <use xlink:href="#path1_fill" transform="matrix(6.12323e-17 1 -1 6.12323e-17 752 96)" fill="#FFFFFF"/>
+      </g>
+      <g id="Rectangle">
+        <use xlink:href="#path1_fill" transform="matrix(6.12323e-17 -1 1 6.12323e-17 688 96)" fill="#FFFFFF"/>
+      </g>
+    </g>
+  </g>
+  <defs>
+    <path id="path0_fill" d="M 0 14.0488C 0 6.28985 6.28985 0 14.0488 0L 28.0976 0L 28.0976 14.0488C 28.0976 21.8077 21.8077 28.0976 14.0488 28.0976C 6.28985 28.0976 0 21.8077 0 14.0488Z"/>
+    <path id="path1_fill" d="M 0 16C 0 7.16344 7.16344 0 16 0C 24.8366 0 32 7.16344 32 16C 32 24.8366 24.8366 32 16 32L 0 32L 0 16Z"/>
+  </defs>
+</svg>

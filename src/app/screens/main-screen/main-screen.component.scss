@@ -1,0 +1,40 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+app-header {
+  flex: 0 0 auto;
+}
+
+.main-container {
+  display: flex;
+  flex: 1 1 auto;
+  > div {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+app-diagram {
+  flex: 1 1 auto;
+}
+
+app-editor {
+  flex: 0 0 auto;
+  width: calc(50% - 6px);
+}
+
+.divider {
+  flex: 0 0 auto;
+  width: 12px;
+  background: $divider-color;
+  border: 5px solid #fff;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  user-select: none;
+}
