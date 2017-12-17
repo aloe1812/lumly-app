@@ -88,3 +88,12 @@ ipcMain.on('show-context-menu', function (event) {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
 });
+
+// Before Quit events
+app.on('window-all-closed', () => {
+  app.quit();
+});
+
+app.on('before-quit', () => {
+  mainWindow.webContents.send('App:Before-Quit');
+});
