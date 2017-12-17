@@ -18,11 +18,7 @@
       <button class="button-link" (click)="openProject()">Open file</button>
     </header>
     <div class="list">
-      <div>Todooo.lumly</div>
-      <div>Cowrite.lumly</div>
-      <div>Papers.lumly</div>
-      <div>Uranai.lumly</div>
-      <div>Cookle.lumly</div>
+      <div *ngFor="let project of recent" (click)="openRecent(project)">{{ project.title }}</div>
     </div>
   </section>
 </div>

@@ -11,6 +11,7 @@ import { ProjectService } from 'app/core/project.service';
 export class StartScreenComponent implements OnInit {
 
   projectNameCtrl = new FormControl();
+  recent;
 
   constructor(
     private projectService: ProjectService,
@@ -21,10 +22,16 @@ export class StartScreenComponent implements OnInit {
     this.projectService.projectOpened.first().subscribe(() => {
       this.router.navigateByUrl('/main');
     });
+
+    this.recent = this.projectService.recent;
   }
 
   openProject() {
     this.projectService.openProject();
+  }
+
+  openRecent(project) {
+    this.projectService.openRecentProject(project);
   }
 
   addProject() {
