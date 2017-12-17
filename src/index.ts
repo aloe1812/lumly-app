@@ -2,7 +2,9 @@ import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog } from 'elec
 import { AppEvents } from './electron/events';
 import * as Store from 'electron-store';
 
-const store = new Store();
+const store = new Store({
+  encryptionKey: 'Qpv54qjyyoZ6Ii3QZ3I6'
+});
 
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
