@@ -19,6 +19,7 @@ export class FileComponent implements OnInit {
   @Input() path;
   @Input() level = 1;
   @Output() onDelete: EventEmitter<any> = new EventEmitter();
+  @Output() positionChanged: EventEmitter<any> = new EventEmitter();
 
   files;
   filePath = [];
@@ -50,12 +51,22 @@ export class FileComponent implements OnInit {
 
     if (this.isGroup) {
       this.getInnerFiles();
+      this.sortFiles();
     }
 
     if (this.file._immediateSelect) {
       delete this.file._immediateSelect;
       this.select();
     }
+
+    if (this.file._checkPosition) {
+      delete this.file._checkPosition;
+      this.positionChanged.emit();
+    }
+  }
+
+  sortFiles() {
+    this.fileService.sortFiles(this.files);
   }
 
   onClick() {
@@ -77,6 +88,7 @@ export class FileComponent implements OnInit {
 
   onRenamed() {
     this.isRename = false;
+    this.positionChanged.emit();
   }
 
   onInnerDelete(data) {

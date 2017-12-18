@@ -6,6 +6,7 @@
     <app-file
       [file]="file"
       (onDelete)="onFilesDelete($event)"
+      (positionChanged)="sortFiles()"
     ></app-file>
   </div>
 </div>

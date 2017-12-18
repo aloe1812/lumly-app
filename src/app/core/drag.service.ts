@@ -106,6 +106,8 @@ export class DragService {
       const targetFiles = this.getFilesByElement(target);
       const sourceFiles = this.getFilesByElement(source);
 
+      file._checkPosition = true;
+
       // удаляем файл из прошлого контейнера и добавляем в новый
       remove(sourceFiles, file);
       targetFiles.push(file);

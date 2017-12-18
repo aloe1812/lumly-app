@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../..//core/store.service';
+import { FileService } from 'app/core/file.service';
 import { PlaygroundComponent } from '..//playground/playground.component';
 import { DragService } from 'app/core/drag.service';
 import * as remove from 'lodash/remove';
@@ -20,7 +21,8 @@ export class ProjectComponent implements OnInit {
   constructor(
     private store: StoreService,
     private dragService: DragService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private fileService: FileService
   ) { }
 
   ngOnInit() {
@@ -40,6 +42,10 @@ export class ProjectComponent implements OnInit {
     }
   }
 
+  sortFiles() {
+    this.fileService.sortFiles(this.files);
+  }
+
   private subscribeToActiveProject() {
     this.store.data('Project:Active').get()
       .subscribe(project => {
@@ -48,6 +54,7 @@ export class ProjectComponent implements OnInit {
         if (project) {
           this.project = project;
           this.files = project.content.files;
+          this.sortFiles();
         } else {
           this.clearProject();
         }
