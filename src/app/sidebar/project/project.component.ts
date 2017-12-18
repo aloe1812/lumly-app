@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../..//core/store.service';
 import { PlaygroundComponent } from '..//playground/playground.component';
+import { DragService } from 'app/core/drag.service';
 import * as remove from 'lodash/remove';
 
 @Component({
@@ -17,10 +18,14 @@ export class ProjectComponent implements OnInit {
   activeFile;
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private dragService: DragService,
+    private elementRef: ElementRef
   ) { }
 
   ngOnInit() {
+    this.dragService.init(this);
+
     this.subscribeToActiveProject();
     this.subscribeToActiveFile();
   }

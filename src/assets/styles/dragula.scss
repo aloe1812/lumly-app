@@ -1,0 +1,28 @@
+@import '../node_modules/dragula/dist/dragula';
+@import './variables';
+
+.gu-mirror .dragula {
+  display: none;
+}
+
+.gu-transit {
+  display: none;
+}
+
+.dragover {
+  background: rgba($file-hover, 0.7);
+}
+
+.gu-mirror .file {
+  background: transparent;
+  color: $dark;
+  .icon-arrow {
+    transform: rotate(-90deg);
+  }
+  &::after {
+    display: none;
+  }
+  .icon-file {
+    color: $grey;
+  }
+}

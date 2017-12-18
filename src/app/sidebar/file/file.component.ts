@@ -1,8 +1,10 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, ElementRef } from '@angular/core';
+import { DragService } from 'app/core/drag.service';
 import { StoreService } from '../../core/store.service';
 import { FileService } from '../../core/file.service';
 import { ProjectService } from '../../core/project.service';
 import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
+
 import * as forEach from 'lodash/forEach';
 import * as remove from 'lodash/remove';
 
@@ -15,10 +17,12 @@ export class FileComponent implements OnInit {
 
   @Input() file;
   @Input() path;
+  @Input() level = 1;
   @Output() onDelete: EventEmitter<any> = new EventEmitter();
 
   files;
   filePath = [];
+  fileStyle;
   isHovered = false;
   isRename = false;
 
@@ -33,11 +37,16 @@ export class FileComponent implements OnInit {
     private store: StoreService,
     private uiUtils: SharedUiUtilsService,
     private fileService: FileService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private dragService: DragService,
+    private elementRef: ElementRef
   ) { }
 
   ngOnInit() {
+    this.setStyle();
     this.setPath();
+
+    this.dragService.addFile(this);
 
     if (this.isGroup) {
       this.getInnerFiles();
@@ -180,6 +189,12 @@ export class FileComponent implements OnInit {
       deletedGuids,
       selectedFile
     });
+  }
+
+  private setStyle() {
+    this.fileStyle = {
+      'padding-left': -9 + 18 * this.level + 'px'
+   }
   }
 
 }

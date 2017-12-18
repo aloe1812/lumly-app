@@ -9,6 +9,7 @@ import { InjectionService } from './injection.service';
 import { UtilsService } from './utils.service';
 import { FileService } from './file.service';
 import { InitializationService } from './initialization.service';
+import { DragService } from './drag.service';
 
 export function initService(init: InitializationService) {
   return () => init.initApp();
@@ -27,6 +28,7 @@ export function initService(init: InitializationService) {
     UtilsService,
     FileService,
     InitializationService,
+    DragService,
 
     {
       provide: APP_INITIALIZER,

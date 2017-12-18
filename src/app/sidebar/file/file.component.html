@@ -4,10 +4,10 @@
     toggled: file.isToggled,
     'is-group': isGroup,
     changed: isFile && !isRename && (file.isChanged || file.isTitleChanged || file.isNew),
-    toggled: file.isToggled,
     selected: file.isSelected,
     hovered: isHovered
   }"
+  [ngStyle]="fileStyle"
   (click)="onClick()"
   (contextmenu)="openContext($event)"
 >
@@ -19,10 +19,10 @@
   <app-file-rename *ngIf="isRename" [file]="file" (renamed)="onRenamed()"></app-file-rename>
 </div>
 
-<div class="dragula" [hidden]="!files || !file.isToggled">
+<div [hidden]="!file.isToggled" *ngFor="let innerFile of files">
   <app-file
-    *ngFor="let file of files"
-    [file]="file"
+    [level]="level + 1"
+    [file]="innerFile"
     [path]="filePath"
     (onDelete)="onInnerDelete($event)"
   ></app-file>

@@ -1,5 +1,9 @@
 @import './variables';
 
+app-file {
+  display: block;
+}
+
 .file {
   display: flex;
   align-items: center;
@@ -90,28 +94,6 @@
       color: inherit;
       &:focus {
         outline: none;
-      }
-    }
-  }
-}
-
-.file {
-  padding-left: 9px;
-  + .dragula .file {
-    padding-left: 27px;
-    + .dragula .file {
-      padding-left: 45px;
-      + .dragula .file {
-        padding-left: 63px;
-        + .dragula .file {
-          padding-left: 81px;
-          + .dragula .file {
-            padding-left: 99px;
-            + .dragula .file {
-              padding-left: 117px;
-            }
-          }
-        }
       }
     }
   }
