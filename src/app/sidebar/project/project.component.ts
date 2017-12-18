@@ -65,7 +65,7 @@ export class ProjectComponent implements OnInit {
 
   private subscribeToFileEvents() {
     this.store.event('File:Selected').get().subscribe(
-      ({file}) => {
+      file => {
         if (this.activeFile) {
           this.activeFile.isSelected = false;
         }

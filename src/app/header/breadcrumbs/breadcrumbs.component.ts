@@ -18,13 +18,12 @@ export class BreadcrumbsComponent implements OnInit {
     this.subscribeToActiveFile();
   }
 
+  // TODO: разобраться почему тут вылетает ошибка ExpressionChangedAfterItHasBeenCheckedError
   private subscribeToActiveFile() {
-    this.store.event('File:Selected').get()
-      .subscribe(data => {
-        if (data) {
-          setTimeout(() => {
-            this.path = data.path;
-          });
+    this.store.event('File:Show:Path').get()
+      .subscribe(path => {
+        if (path) {
+          setTimeout(() => { this.path = path; });
         } else {
           this.path = null;
         }

@@ -28,10 +28,8 @@ export class PlaygroundComponent implements OnInit {
       return;
     }
 
-    this.store.event('File:Selected').emit({
-      file: this.file,
-      path: [this.file]
-    });
+    this.store.event('File:Selected').emit(this.file);
+    this.store.event('File:Show:Path').emit([this.file]);
   }
 
 }

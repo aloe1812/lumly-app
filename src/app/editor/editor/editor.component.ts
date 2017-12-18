@@ -50,7 +50,7 @@ export class EditorComponent implements OnInit {
 
   private subscribeToActiveFile() {
     this.store.event('File:Selected').get()
-      .subscribe(({file}) => {
+      .subscribe(file => {
         if ( !has(file, 'originalContent') ) {
           file.originalContent = file.content;
         }
