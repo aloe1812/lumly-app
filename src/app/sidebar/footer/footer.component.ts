@@ -62,7 +62,7 @@ export class FooterComponent implements OnInit {
         }
 
         if (evType === 'add-file') {
-          this.addFile();
+          this.store.event('File:Add').emit();
         }
 
         if (evType === 'add-folder') {
@@ -73,26 +73,6 @@ export class FooterComponent implements OnInit {
           this.store.event('Project:Add').emit();
         }
       });
-  }
-
-  private addFile() {
-    const file = {
-      type: 'file',
-      guid: ++this.project.project.guidCounter,
-      title: 'Untitled',
-      isNew: true,
-      content: '',
-      _immediateSelect: true
-    };
-
-    this.project.content.files.push(file);
-
-    this.projectService.saveChange({
-      guid: file.guid,
-      changes: {
-        isNew: true
-      }
-    });
   }
 
 }
