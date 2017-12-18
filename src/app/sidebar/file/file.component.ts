@@ -61,6 +61,8 @@ export class FileComponent implements OnInit {
 
     if (this.file._checkPosition) {
       delete this.file._checkPosition;
+
+      this.checkIfPositionChanged();
       this.store.event('File:Show:Path').emit(this.filePath);
       this.positionChanged.emit();
     }
@@ -206,6 +208,26 @@ export class FileComponent implements OnInit {
     this.fileStyle = {
       'padding-left': -9 + 18 * this.level + 'px'
    }
+  }
+
+  // TODO: разобраться почему вылетает ошибка ExpressionChangedAfterItHasBeenCheckedError
+  private checkIfPositionChanged() {
+    let currentParentGuid;
+
+    if (this.path) {
+      currentParentGuid = this.path[this.path.length - 1].guid;
+    } else {
+      currentParentGuid = 0;
+    }
+
+    setTimeout(() => {
+      this.projectService.saveChange({
+        guid: this.file.guid,
+        changes: {
+          isMoved: currentParentGuid !== this.file.parentGuid
+        }
+      });
+    });
   }
 
 }
