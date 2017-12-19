@@ -9,8 +9,7 @@ import { ProjectService } from '../../core/project.service';
 })
 export class HeaderComponent implements OnInit {
 
-  isProjectHasChanges = false;
-  activeProjectTitle = '';
+  project;
 
   constructor(
     private store: StoreService,
@@ -18,7 +17,6 @@ export class HeaderComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.subscribeToProjectChanges();
     this.subscribeToActiveProject();
   }
 
@@ -30,16 +28,10 @@ export class HeaderComponent implements OnInit {
     this.projectService.saveProject();
   }
 
-  private subscribeToProjectChanges() {
-    this.store.data('Project:Active:HasChanges').get().subscribe(hasChanges => {
-      this.isProjectHasChanges = hasChanges;
-    });
-  }
-
   private subscribeToActiveProject() {
     this.store.data('Project:Active').get().subscribe(
       (project) => {
-        this.activeProjectTitle = project ? project.project.title : '';
+        this.project = project;
       }
     )
   }

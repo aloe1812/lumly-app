@@ -7,7 +7,14 @@
   </header>
   <div class="sidenav-body">
     <div class="projects-list">
-      <div class="project" *ngFor="let project of projects; let index = index;" [class.selected]="project === activeProject" (click)="selectProject(project)">
+      <div class="project"
+        *ngFor="let project of projects; let index = index;"
+        [ngClass]="{
+          selected: project === activeProject,
+          'has-changes': project.project.hasChanges
+        }"
+        (click)="selectProject(project)"
+      >
         <div class="head">
           <div class="title">{{ project.project.title }}</div>
         </div>

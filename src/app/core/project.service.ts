@@ -23,8 +23,6 @@ export class ProjectService {
   private projectOpenedSub = new Subject();
   public projectOpened = this.projectOpenedSub.asObservable();
 
-  private lastChangesStatus = false;
-
   constructor(
     private store: StoreService,
     private electronService: ElectronService
@@ -75,7 +73,7 @@ export class ProjectService {
 
   setActive(project) {
     this.activeProject = project;
-    this.checkProjectChangesStatus(true);
+    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
 
     this.store.data('Project:Active').set(project);
   }
@@ -143,7 +141,7 @@ export class ProjectService {
       }
     });
 
-    this.checkProjectChangesStatus();
+    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
   }
 
   getProjectDataForSave() {
@@ -185,8 +183,7 @@ export class ProjectService {
 
     updateFiles(this.activeProject.content.files, 0);
 
-    this.lastChangesStatus = false;
-    this.store.data('Project:Active:HasChanges').set(false);
+    this.activeProject.project.hasChanges = false;
 
     function updateFiles(files, parentGuid) {
       forEach(files, (file) => {
@@ -228,15 +225,6 @@ export class ProjectService {
         file: JSON.stringify(projectData),
         fileName: projectData.project.title
       });
-    }
-  }
-
-  private checkProjectChangesStatus(forceChange = false) {
-    const isProjectHasChanges = !isEmpty(this.activeProject.project.changes);
-
-    if (forceChange || (isProjectHasChanges !== this.lastChangesStatus)) {
-      this.lastChangesStatus = isProjectHasChanges;
-      this.store.data('Project:Active:HasChanges').set(isProjectHasChanges);
     }
   }
 
