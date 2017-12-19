@@ -111,7 +111,7 @@ function getPlugins() {
       "context": "src",
       "to": "",
       "from": {
-        "glob": "favicon.*",
+        "glob": "icon.*",
         "dot": true
       }
     }
