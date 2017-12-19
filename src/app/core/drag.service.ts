@@ -18,6 +18,8 @@ export class DragService {
     // предназначен для того, чтобы можно было положить файл в корень если навести на самый верх
     const fakeDrop = rootComponent.elementRef.nativeElement.querySelector('.fake-drop');
 
+    let openGroupTimeout;
+
     this.drake = dragula([rootElem, fakeDrop], {
       copy: true
     });
@@ -33,6 +35,9 @@ export class DragService {
     });
 
     this.drake.on('over', (el, container, source) => {
+
+      clearTimeout(openGroupTimeout)
+
       if (container === fakeDrop) {
         container = rootElem;
       }
@@ -57,10 +62,12 @@ export class DragService {
 
       // Раскрываем группу если навели на нее
       if (container.tagName === 'APP-FILE') {
-        const containerGuid = container.dataset.guid;
-        if ( containerGuid && this.store[containerGuid].isContainer && !this.store[containerGuid].component.file.isToggled ) {
-          this.store[containerGuid].component.file.isToggled = true;
-        }
+        openGroupTimeout = setTimeout(() => {
+          const containerGuid = container.dataset.guid;
+          if ( containerGuid && this.store[containerGuid].isContainer && !this.store[containerGuid].component.file.isToggled ) {
+            this.store[containerGuid].component.file.isToggled = true;
+          }
+        }, 500);
       }
     });
 
