@@ -1,5 +1,6 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
 import { AppEvents } from './electron/events';
+import { setMenu } from './electron/menu';
 import * as Store from 'electron-store';
 
 const store = new Store({
@@ -59,6 +60,8 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  setMenu();
 }
 
 // This method will be called when Electron has finished
