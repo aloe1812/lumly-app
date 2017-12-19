@@ -37,6 +37,7 @@
     "@angular/router": "5.0.3",
     "codemirror": "^5.32.0",
     "core-js": "2.4.1",
+    "dom-autoscroller": "^2.3.3",
     "dragula": "^3.7.2",
     "enhanced-resolve": "3.3.0",
     "lodash": "^4.17.4",

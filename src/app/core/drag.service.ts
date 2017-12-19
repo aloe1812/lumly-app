@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as dragula from 'dragula';
+import * as autoScroll from 'dom-autoscroller';
 import * as remove from 'lodash/remove';
 
 @Injectable()
@@ -23,6 +24,19 @@ export class DragService {
     this.drake = dragula([rootElem, fakeDrop], {
       copy: true
     });
+
+    // Скроллит вниз/вверх при перетаскивании
+    const scroll = autoScroll(
+      rootComponent.elementRef.nativeElement.querySelector('.scrollable'),
+      {
+        margin: 20,
+        pixels: 5,
+        scrollWhenOutside: true,
+        autoScroll: () => {
+          return scroll.down && this.drake.dragging;
+        }
+      }
+    );
 
     this.drake.on('drag', el => {
       fakeDrop.classList.add('shown');

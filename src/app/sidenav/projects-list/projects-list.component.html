@@ -10,9 +10,6 @@
       <div class="project" *ngFor="let project of projects; let index = index;" [class.selected]="project === activeProject" (click)="selectProject(project)">
         <div class="head">
           <div class="title">{{ project.project.title }}</div>
-          <!-- <div class="actions" *ngIf="project !== activeProject">
-            <button class="simple-btn"><svg-icon icon="more"></svg-icon></button>
-          </div> -->
         </div>
         <div class="meta">{{ projectsFilesCount[index] || 'No' }} files</div>
       </div>
