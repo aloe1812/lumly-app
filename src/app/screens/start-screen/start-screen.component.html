@@ -19,6 +19,7 @@
     </header>
     <div class="list">
       <div *ngFor="let project of recent" (click)="openRecent(project)">{{ project.title }}</div>
+      <div *ngIf="!recent || !recent.length" class="no-recent">You have no recent projects</div>
     </div>
   </section>
 </div>

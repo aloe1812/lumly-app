@@ -115,5 +115,11 @@
         opacity: 1;
       }
     }
+    .no-recent {
+      &, &:hover {
+        opacity: 0.24;
+        cursor: default;
+      }
+    }
   }
 }
