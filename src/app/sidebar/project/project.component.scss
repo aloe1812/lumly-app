@@ -2,6 +2,16 @@
 
 :host {
   position: relative;
+  display: flex;
+  flex-direction: column
+}
+
+app-playground {
+  flex: 0 0 auto;
+}
+
+.scrollable {
+  overflow: auto;
 }
 
 .project-empty {
