@@ -45,7 +45,7 @@ export class AddFolderComponent implements OnInit {
 
   addFolder() {
     if (!this.folderNameCtrl.value) {
-      this.sidenav.hide();
+      return;
     }
 
     const folder = {

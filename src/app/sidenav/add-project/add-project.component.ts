@@ -46,7 +46,7 @@ export class AddProjectComponent implements OnInit {
 
   addProject() {
     if (!this.projectNameCtrl.value) {
-      this.sidenav.hide();
+      return;
     }
 
     const project = {
