@@ -1,9 +1,18 @@
 <app-playground></app-playground>
-<div class="dragula">
-  <app-file
-    *ngFor="let file of files"
-    [file]="file"
-    (onDelete)="onFilesDelete($event)"
-  ></app-file>
+
+<div class="scrollable">
+  <div>
+    <div class="fake-drop"></div>
+    <div class="dragula">
+      <div *ngFor="let file of files">
+        <app-file
+          [file]="file"
+          (onDelete)="onFilesDelete($event)"
+          (positionChanged)="sortFiles()"
+        ></app-file>
+      </div>
+    </div>
+  </div>
 </div>
+
 <div *ngIf="files && !files.length" class="project-empty">Add files to project</div>

@@ -40,4 +40,29 @@ export class FileService {
     }
   }
 
+  sortFiles(files) {
+    files.sort((a, b) => {
+      if (a.type === b.type) {
+        if (a.title > b.title) {
+          return 1;
+        }
+
+        if (a.title < b.title) {
+          return -1;
+        }
+
+        return 0;
+      }
+
+      if (a.type === 'group' && b.type === 'file') {
+        return -1;
+      }
+
+      if (a.type === 'file' && b.type === 'group') {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
 }

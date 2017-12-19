@@ -93,13 +93,15 @@ export class ProjectService {
 
     project.project.guidCounter = 0;
 
-    setFilesGuid(project.content.files);
+    setFilesGuid(project.content.files, 0);
 
-    function setFilesGuid(files) {
+    function setFilesGuid(files, parentGuid) {
       forEach(files, file => {
         file.guid = ++project.project.guidCounter;
+        file.parentGuid = parentGuid;
+
         if (file.type === 'group' && file.files && file.files.length) {
-          setFilesGuid(file.files)
+          setFilesGuid(file.files, file.guid)
         }
       });
     }
@@ -181,24 +183,25 @@ export class ProjectService {
   updateProjectAfterSave() {
     this.activeProject.project.changes = {};
 
-    updateFiles(this.activeProject.content.files);
+    updateFiles(this.activeProject.content.files, 0);
 
     this.lastChangesStatus = false;
     this.store.data('Project:Active:HasChanges').set(false);
 
-    function updateFiles(files) {
+    function updateFiles(files, parentGuid) {
       forEach(files, (file) => {
         if (file.type === 'file') {
           file.isChanged = false;
           file.originalContent = file.content;
         }
 
+        file.parentGuid = parentGuid;
         file.isNew = false;
         file.isTitleChanged = false;
         file.originalTitle = file.title;
 
         if (file.type === 'group') {
-          updateFiles(file.files);
+          updateFiles(file.files, file.guid);
         }
       });
     }

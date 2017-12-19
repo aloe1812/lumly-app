@@ -1,6 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../..//core/store.service';
-import { PlaygroundComponent } from '..//playground/playground.component';
+import { FileService } from 'app/core/file.service';
+import { DragService } from 'app/core/drag.service';
+import { ProjectService } from 'app/core/project.service';
+import { PlaygroundComponent } from '../playground/playground.component';
 import * as remove from 'lodash/remove';
 
 @Component({
@@ -17,12 +20,18 @@ export class ProjectComponent implements OnInit {
   activeFile;
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private dragService: DragService,
+    private elementRef: ElementRef,
+    private fileService: FileService,
+    private projectService: ProjectService
   ) { }
 
   ngOnInit() {
+    this.dragService.init(this);
+
     this.subscribeToActiveProject();
-    this.subscribeToActiveFile();
+    this.subscribeToFileEvents();
   }
 
   onFilesDelete(data) {
@@ -35,6 +44,10 @@ export class ProjectComponent implements OnInit {
     }
   }
 
+  sortFiles() {
+    this.fileService.sortFiles(this.files);
+  }
+
   private subscribeToActiveProject() {
     this.store.data('Project:Active').get()
       .subscribe(project => {
@@ -43,29 +56,59 @@ export class ProjectComponent implements OnInit {
         if (project) {
           this.project = project;
           this.files = project.content.files;
+          this.sortFiles();
         } else {
           this.clearProject();
         }
       });
   }
 
-  private subscribeToActiveFile() {
+  private subscribeToFileEvents() {
     this.store.event('File:Selected').get().subscribe(
-      ({file}) => {
-        setTimeout(() => {
-          if (this.activeFile) {
-            this.activeFile.isSelected = false;
-          }
-          file.isSelected = true;
-          this.activeFile = file;
-        });
+      file => {
+        if (this.activeFile) {
+          this.activeFile.isSelected = false;
+        }
+        file.isSelected = true;
+        this.activeFile = file;
       }
     );
+
+    this.store.event('File:Add').get().subscribe(
+      () => {
+        this.addFile();
+      }
+    )
   }
 
   private clearProject() {
     this.project = null;
     this.files = null;
+  }
+
+  private addFile() {
+    const file = {
+      type: 'file',
+      guid: ++this.project.project.guidCounter,
+      title: 'Untitled',
+      isNew: true,
+      content: '',
+      _immediateSelect: true,
+      _checkPosition: true
+    };
+
+    if (this.activeFile) {
+      this.activeFile.isSelected = false;
+    }
+
+    this.project.content.files.push(file);
+
+    this.projectService.saveChange({
+      guid: file.guid,
+      changes: {
+        isNew: true
+      }
+    });
   }
 
 }

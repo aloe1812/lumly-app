@@ -47,7 +47,8 @@ export class AddFolderComponent implements OnInit {
       guid: ++this.project.project.guidCounter,
       title: this.folderNameCtrl.value,
       isNew: true,
-      files: []
+      files: [],
+      _checkPosition: true
     };
 
     this.project.content.files.push(folder);

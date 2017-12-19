@@ -1,8 +1,10 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, ElementRef } from '@angular/core';
+import { DragService } from 'app/core/drag.service';
 import { StoreService } from '../../core/store.service';
 import { FileService } from '../../core/file.service';
 import { ProjectService } from '../../core/project.service';
 import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
+
 import * as forEach from 'lodash/forEach';
 import * as remove from 'lodash/remove';
 
@@ -15,10 +17,13 @@ export class FileComponent implements OnInit {
 
   @Input() file;
   @Input() path;
+  @Input() level = 1;
   @Output() onDelete: EventEmitter<any> = new EventEmitter();
+  @Output() positionChanged: EventEmitter<any> = new EventEmitter();
 
   files;
   filePath = [];
+  fileStyle;
   isHovered = false;
   isRename = false;
 
@@ -33,20 +38,38 @@ export class FileComponent implements OnInit {
     private store: StoreService,
     private uiUtils: SharedUiUtilsService,
     private fileService: FileService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private dragService: DragService,
+    private elementRef: ElementRef
   ) { }
 
   ngOnInit() {
+    this.setStyle();
     this.setPath();
+
+    this.dragService.addFile(this);
 
     if (this.isGroup) {
       this.getInnerFiles();
+      this.sortFiles();
     }
 
     if (this.file._immediateSelect) {
       delete this.file._immediateSelect;
       this.select();
     }
+
+    if (this.file._checkPosition) {
+      delete this.file._checkPosition;
+
+      this.checkIfPositionChanged();
+      this.store.event('File:Show:Path').emit(this.filePath);
+      this.positionChanged.emit();
+    }
+  }
+
+  sortFiles() {
+    this.fileService.sortFiles(this.files);
   }
 
   onClick() {
@@ -68,6 +91,7 @@ export class FileComponent implements OnInit {
 
   onRenamed() {
     this.isRename = false;
+    this.positionChanged.emit();
   }
 
   onInnerDelete(data) {
@@ -95,10 +119,8 @@ export class FileComponent implements OnInit {
       return;
     }
 
-    this.store.event('File:Selected').emit({
-      file: this.file,
-      path: this.filePath
-    });
+    this.store.event('File:Selected').emit(this.file);
+    this.store.event('File:Show:Path').emit(this.filePath);
   }
 
   private setPath() {
@@ -179,6 +201,32 @@ export class FileComponent implements OnInit {
       file: this.file,
       deletedGuids,
       selectedFile
+    });
+  }
+
+  private setStyle() {
+    this.fileStyle = {
+      'padding-left': -9 + 18 * this.level + 'px'
+   }
+  }
+
+  // TODO: разобраться почему вылетает ошибка ExpressionChangedAfterItHasBeenCheckedError
+  private checkIfPositionChanged() {
+    let currentParentGuid;
+
+    if (this.path) {
+      currentParentGuid = this.path[this.path.length - 1].guid;
+    } else {
+      currentParentGuid = 0;
+    }
+
+    setTimeout(() => {
+      this.projectService.saveChange({
+        guid: this.file.guid,
+        changes: {
+          isMoved: currentParentGuid !== this.file.parentGuid
+        }
+      });
     });
   }
 
