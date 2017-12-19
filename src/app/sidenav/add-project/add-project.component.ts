@@ -38,6 +38,12 @@ export class AddProjectComponent implements OnInit {
     this.sidenav.show();
   }
 
+  onKeydown(ev) {
+    if (ev.keyCode === 13) {
+      this.addProject();
+    }
+  }
+
   addProject() {
     if (!this.projectNameCtrl.value) {
       this.sidenav.hide();

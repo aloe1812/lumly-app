@@ -7,6 +7,6 @@
 <div class="sidenav-body">
   <div class="default-form-group">
     <label for="folder-name">Folder name</label>
-    <input type="text" id="folder-name" [formControl]="folderNameCtrl" name="folder-name" placeholder="Untitled">
+    <input type="text" id="folder-name" [formControl]="folderNameCtrl" name="folder-name" placeholder="Untitled" (keydown)="onKeydown($event)">
   </div>
 </div>
