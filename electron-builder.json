@@ -4,5 +4,11 @@
   "directories": {
     "app": "dist",
     "output": "app-builds"
+  },
+  "win": {
+    "icon": "dist/icon"
+  },
+  "mac": {
+    "icon": "dist/icon"
   }
 }

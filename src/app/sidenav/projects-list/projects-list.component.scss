@@ -102,7 +102,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding-right: 10px;
+    position: relative;
+    padding: 2px 8px 0px 0px;
+    margin-top: -2px;
   }
   .meta {
     margin-top: 5px;
@@ -124,6 +126,21 @@
     }
     .head button {
       display: none;
+    }
+  }
+  &.has-changes {
+    .title::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background-color: $blue;
+      border-radius: 50%;
+      top: 0;
+      right: 0;
+    }
+    &.selected .title::after {
+      background-color: #fff;
     }
   }
 }

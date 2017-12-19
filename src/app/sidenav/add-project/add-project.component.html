@@ -10,6 +10,6 @@
 <div class="sidenav-body">
   <div class="default-form-group">
     <label for="project-name">Project name</label>
-    <input type="text" id="project-name" [formControl]="projectNameCtrl" name="project-name" placeholder="Name">
+    <input type="text" id="project-name" [formControl]="projectNameCtrl" name="project-name" placeholder="Name" (keydown)="onKeydown($event)">
   </div>
 </div>

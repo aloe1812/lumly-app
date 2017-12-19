@@ -6,8 +6,9 @@
 1. `npm run start`
 
 Билд:
-0. удалить папку dist
-1. `npm run build:prod`
-2. удалить `node_modules`, `package-lock.json`, ненужное в `assets` и `src`
-3. изменить `package.json` и `npm install --prod`
-4. `npm run electron:build`
+1. удалить папку dist
+2. `npm run build:prod`
+3. удалить `node_modules`, `package-lock.json`, ненужное в `assets` и `src`
+4. убрать dependencies, devDependencies, scripts из `package.json` и добавить нужные пакеты:  
+`cd dist && npm i electron-store --save`
+5. `npm run electron:build`

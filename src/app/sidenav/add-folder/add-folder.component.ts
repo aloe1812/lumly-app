@@ -37,9 +37,15 @@ export class AddFolderComponent implements OnInit {
       .subscribe(project => this.project = project);
   }
 
+  onKeydown(ev) {
+    if (ev.keyCode === 13) {
+      this.addFolder();
+    }
+  }
+
   addFolder() {
     if (!this.folderNameCtrl.value) {
-      this.sidenav.hide();
+      return;
     }
 
     const folder = {
