@@ -14,8 +14,8 @@
   </section>
   <section class="recent">
     <header class="header">
-      <div class="title">Recent files</div>
-      <button class="button-link" (click)="openProject()">Open file</button>
+      <div class="title">Recent projects</div>
+      <button class="button-link" (click)="openProject()">Open project</button>
     </header>
     <div class="list">
       <div *ngFor="let project of recent" (click)="openRecent(project)">{{ project.title }}</div>
