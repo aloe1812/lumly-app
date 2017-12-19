@@ -1,7 +1,14 @@
-import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
+import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { AppEvents } from './electron/events';
 import { setMenu } from './electron/menu';
 import * as Store from 'electron-store';
+
+const DEFAULT_SIZES = {
+  width: 1200,
+  height: 700,
+  minWidth: 500,
+  minHeight: 300
+};
 
 const store = new Store({
   encryptionKey: 'Qpv54qjyyoZ6Ii3QZ3I6'
@@ -28,9 +35,18 @@ contextMenu.append(new MenuItem({ role: 'paste' }));
 // Функция для создания окна приложения
 function createWindow() {
   // Create the browser window.
+
+  const bounds = getMainWindowBounds();
+
   mainWindow = new BrowserWindow({
     title: 'Lumly',
     backgroundColor: '#111111',
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
+    minWidth: bounds.minWidth,
+    minHeight: bounds.minHeight,
     webPreferences: {
       nodeIntegration: true
     }
@@ -40,10 +56,6 @@ function createWindow() {
     window: mainWindow,
     store: store
   });
-
-  mainWindow.setMinimumSize(500, 300);
-
-  mainWindow.setSize(1200, 700);
 
   // and load the index.html of the app.
   mainWindow.loadURL(`file://${__dirname}/index.html`);
@@ -96,3 +108,23 @@ ipcMain.on('show-context-menu', function (event) {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
 });
+
+// Helpers
+function getMainWindowBounds() {
+  const displayWorkArea = screen.getPrimaryDisplay().workArea;
+
+  const width = DEFAULT_SIZES.width > displayWorkArea.width ? displayWorkArea.width : DEFAULT_SIZES.width;
+  const height = DEFAULT_SIZES.height > displayWorkArea.height ? displayWorkArea.height : DEFAULT_SIZES.height;
+
+  const x = displayWorkArea.x + ((displayWorkArea.width - width) / 2);
+  const y = displayWorkArea.y + ((displayWorkArea.height - height) / 2);
+
+  return {
+    width,
+    height,
+    x,
+    y,
+    minWidth: DEFAULT_SIZES.minWidth,
+    minHeight: DEFAULT_SIZES.minHeight
+  };
+}
