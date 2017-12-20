@@ -35,12 +35,12 @@ export class FileComponent implements OnInit {
   }
 
   constructor(
+    public elementRef: ElementRef,
     private store: StoreService,
     private uiUtils: SharedUiUtilsService,
     private fileService: FileService,
     private projectService: ProjectService,
-    private dragService: DragService,
-    private elementRef: ElementRef
+    private dragService: DragService
   ) { }
 
   ngOnInit() {
@@ -86,7 +86,11 @@ export class FileComponent implements OnInit {
 
   openContext(event) {
     event.preventDefault();
-    this.openMenu(event);
+
+    this.fileService.openFileContextMenu(this, {
+      x: event.x,
+      y: event.y
+    });
   }
 
   onRenamed() {
@@ -101,6 +105,20 @@ export class FileComponent implements OnInit {
     }
 
     this.onDelete.emit(data);
+  }
+
+  handleMenuEvent(type) {
+    if (!type) {
+      return;
+    }
+
+    if (type === 'rename') {
+      this.isRename = true;
+    }
+
+    if (type === 'delete') {
+      this.confirmDelete();
+    }
   }
 
   private getInnerFiles() {
@@ -129,41 +147,6 @@ export class FileComponent implements OnInit {
     } else {
       this.filePath = [this.file];
     }
-  }
-
-  private openMenu(ev) {
-    this.isHovered = true;
-
-    const menuItems = [
-      {
-        title: 'Rename',
-        type: 'rename'
-      },
-      {
-        title: 'Delete',
-        type: 'delete',
-        class: 'delete'
-      }
-    ];
-
-    this.uiUtils.openMenu({
-      items: menuItems,
-      event: ev
-    }).subscribe(evType => {
-      this.isHovered = false;
-
-      if (!evType) {
-        return;
-      }
-
-      if (evType === 'rename') {
-        this.isRename = true;
-      }
-
-      if (evType === 'delete') {
-        this.confirmDelete();
-      }
-    });
   }
 
   private confirmDelete() {

@@ -26,11 +26,28 @@ if (serve) {
 let mainWindow;
 const appEvents = new AppEvents();
 
+// Общеее контекстное меню
 const contextMenu = new Menu();
 
 contextMenu.append(new MenuItem({ role: 'cut' }));
 contextMenu.append(new MenuItem({ role: 'copy' }));
 contextMenu.append(new MenuItem({ role: 'paste' }));
+
+// контекстное меню файла
+const fileContextMenu = new Menu();
+
+fileContextMenu.append(new MenuItem({
+  label: 'Rename',
+  click: function(menuItem, win) {
+    win.webContents.send('File:Context-Menu:Clicked', 'rename');
+  }
+}));
+fileContextMenu.append(new MenuItem({
+  label: 'Delete',
+  click: function(menuItem, win) {
+    win.webContents.send('File:Context-Menu:Clicked', 'delete');
+  }
+}));
 
 // Функция для создания окна приложения
 function createWindow() {
@@ -104,9 +121,17 @@ app.on('browser-window-created', function (event, win) {
   });
 });
 
-ipcMain.on('show-context-menu', function (event) {
+ipcMain.on('show-context-menu', function (event, params) {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
+});
+
+ipcMain.on('File:Context-Menu:Open', function (event, params) {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  fileContextMenu.popup(win, {
+    x: params.x,
+    y: params.y
+  });
 });
 
 // Helpers
