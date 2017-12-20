@@ -1,9 +1,16 @@
 import { Injectable } from '@angular/core';
+import { ElectronService } from 'app/core/electron.service';
 
 @Injectable()
 export class FileService {
 
-  constructor() { }
+  private activeContextFileRef;
+
+  constructor(
+    private electronService: ElectronService
+  ) {
+    this.subscribeToElectronEvents();
+  }
 
   getDeletedGuidsAndSelection(file) {
     const deletedGuids = [];
@@ -62,6 +69,17 @@ export class FileService {
         return 1;
       }
       return 0;
+    });
+  }
+
+  openFileContextMenu(fileRef, params) {
+    this.activeContextFileRef = fileRef;
+    this.electronService.ipcRenderer.send('File:Context-Menu:Open', params);
+  }
+
+  private subscribeToElectronEvents() {
+    this.electronService.ipcRenderer.on('File:Context-Menu:Clicked', (event, type) => {
+      this.activeContextFileRef.handleMenuEvent(type);
     });
   }
 
