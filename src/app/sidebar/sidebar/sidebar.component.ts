@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ResizeService } from 'app/core/resize.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -7,9 +8,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class SidebarComponent implements OnInit {
 
-  constructor() { }
+  constructor(
+    private resizeService: ResizeService
+  ) { }
 
   ngOnInit() {
+    this.resizeService.initSidebarResizer();
   }
 
 }

@@ -50,11 +50,11 @@ export class FileService {
   sortFiles(files) {
     files.sort((a, b) => {
       if (a.type === b.type) {
-        if (a.title > b.title) {
+        if (a.title.toLowerCase() > b.title.toLowerCase()) {
           return 1;
         }
 
-        if (a.title < b.title) {
+        if (a.title.toLowerCase() < b.title.toLowerCase()) {
           return -1;
         }
 
@@ -68,6 +68,7 @@ export class FileService {
       if (a.type === 'file' && b.type === 'group') {
         return 1;
       }
+
       return 0;
     });
   }

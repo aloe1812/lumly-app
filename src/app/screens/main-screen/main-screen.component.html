@@ -1,10 +1,9 @@
 <app-header></app-header>
 <div class="main-container">
-  <app-sidebar></app-sidebar>
-  <div>
-    <app-editor></app-editor>
-    <div class="divider"></div>
-    <app-diagram></app-diagram>
+  <app-sidebar class="sidebar"></app-sidebar>
+  <div class="workspace">
+    <app-editor class="editor"></app-editor>
+    <app-diagram class="diagram"></app-diagram>
   </div>
 </div>
 <app-sidenav #sidenav (onHidden)="onSidenavHidden()">

@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
+import { ResizeService } from 'app/core/resize.service';
 
 @Component({
   selector: 'app-main-screen',
@@ -13,10 +14,13 @@ export class MainScreenComponent implements OnInit {
   isProjectsListOpen = false;
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private elementRef: ElementRef,
+    private resizeService: ResizeService
   ) { }
 
   ngOnInit() {
+    this.resizeService.init(this.elementRef.nativeElement);
     this.subscribeToSidenavEvents();
   }
 

@@ -3,6 +3,7 @@ import { StoreService } from '../../core/store.service';
 import { InjectionService } from '../../core/injection.service';
 import { AddMenuComponent } from '../../sidebar/add-menu/add-menu.component';
 import { ProjectService } from 'app/core/project.service';
+import { ResizeService } from 'app/core/resize.service';
 
 @Component({
   selector: 'app-footer',
@@ -16,7 +17,8 @@ export class FooterComponent implements OnInit {
   constructor(
     private store: StoreService,
     private injector: InjectionService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private resizeService: ResizeService
   ) { }
 
   ngOnInit() {
@@ -73,6 +75,10 @@ export class FooterComponent implements OnInit {
           this.store.event('Project:Add').emit();
         }
       });
+  }
+
+  hideSidebar() {
+    this.resizeService.hideSidebar();
   }
 
 }
