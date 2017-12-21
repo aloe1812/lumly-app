@@ -29,7 +29,8 @@ export class EditorComponent implements OnInit {
     private store: StoreService,
     private projectService: ProjectService,
     private electronService: ElectronService,
-    private resizeService: ResizeService
+    private resizeService: ResizeService,
+    private elementRef: ElementRef
   ) { }
 
   ngOnInit() {
@@ -41,6 +42,8 @@ export class EditorComponent implements OnInit {
     this.resizeService.onSidebarToggle.subscribe(isOpen => {
       this.isSidebarOpen = isOpen;
     });
+
+    this.resizeService.initEditorResizer(this.elementRef.nativeElement.querySelector('.editor-resizer'));
   }
 
   showSidebar() {
