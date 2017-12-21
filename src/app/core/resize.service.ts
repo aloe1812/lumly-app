@@ -48,14 +48,25 @@ export class ResizeService {
     }
   }());
 
+  private isSidebarOpen = true;
+
   private onSidebarToggleSub = new BehaviorSubject(true);
   onSidebarToggle = this.onSidebarToggleSub.asObservable();
 
   private containers;
   private sizes = {
     sidebar: 250
-  }
-  private editorResizer;
+  };
+  private workspaceResizer: any  = {
+    min: 120,
+    dragging: false,
+    proportion: 0.5
+  };
+  private sidebarResizer: any  = {
+    min: 120,
+    margin: 40,
+    dragging: false
+  };
 
   constructor() { }
 
@@ -69,59 +80,65 @@ export class ResizeService {
 
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
 
-    this.optimizedResize.add(this.onResize.bind(this));
+    this.optimizedResize.add(this.onWindowResize.bind(this));
   }
 
   showSidebar() {
+    this.isSidebarOpen = true;
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
     this.fixWorkspace();
-    this.onSidebarToggleSub.next(true);
+    this.onSidebarToggleSub.next(this.isSidebarOpen);
   }
 
   hideSidebar() {
+    this.isSidebarOpen = false;
     this.containers.sidebar.style.width = 0;
     this.fixWorkspace();
-    this.onSidebarToggleSub.next(false);
+    this.onSidebarToggleSub.next(this.isSidebarOpen);
   }
 
-  // TODO: добавить requestAnimation (?)
-  initEditorResizer(element) {
-    this.editorResizer = {
-      element: element,
-      dragging: false,
-      min: 120
-    };
+  initWorkspaceResizer() {
+    this.workspaceResizer.element = this.containers.editor.querySelector('.resizer-trigger');
 
-    this.editorResizer.element.addEventListener('mousedown', () => {
-      this.editorResizer.dragging = true;
-      this.editorResizer.startLeft = this.containers.editor.offsetLeft;
-      this.editorResizer.workspaceWidth = this.containers.workspace.offsetWidth;
-      document.body.style.setProperty('cursor', 'col-resize', 'important');
+    this.workspaceResizer.element.addEventListener('mousedown', (ev) => {
+      this.workspaceResizer.dragging = true;
+      this.workspaceResizer.startLeft = this.containers.editor.offsetLeft;
+      this.workspaceResizer.workspaceWidth = this.containers.workspace.offsetWidth;
+      document.body.classList.add('is-dragging');
+      this.workspaceResizer.offset = this.workspaceResizer.startLeft + this.workspaceResizer.element.offsetLeft - ev.x + 2;
     });
 
     document.addEventListener('mouseup', () => {
-      if (this.editorResizer.dragging) {
-        document.body.style.cursor = '';
-        this.editorResizer.dragging = false;
+      if (this.workspaceResizer.dragging) {
+        document.body.classList.remove('is-dragging');
+        this.workspaceResizer.dragging = false;
       }
     });
 
     document.addEventListener('mousemove', (event) => {
-      if (!this.editorResizer.dragging) {
+      if (!this.workspaceResizer.dragging) {
         return;
       }
 
       const resizeFunc = () => {
-        const editorNewWidth = event.x - this.editorResizer.startLeft;
-        const diagramNewWidth = this.editorResizer.workspaceWidth - editorNewWidth;
+        let editorNewWidth = event.x - this.workspaceResizer.startLeft + this.workspaceResizer.offset;
 
-        if (editorNewWidth < this.editorResizer.min || diagramNewWidth < this.editorResizer.min) {
-          return;
+        if (editorNewWidth < this.workspaceResizer.min) {
+          editorNewWidth = this.workspaceResizer.min;
         }
+
+        let diagramNewWidth = this.workspaceResizer.workspaceWidth - editorNewWidth;
+
+        if (diagramNewWidth < this.workspaceResizer.min) {
+          diagramNewWidth = this.workspaceResizer.min;
+          editorNewWidth = this.workspaceResizer.workspaceWidth - diagramNewWidth;
+        }
+
+        this.workspaceResizer.proportion = editorNewWidth / this.workspaceResizer.workspaceWidth;
 
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
-      }
+      };
 
       if (window.requestAnimationFrame) {
         window.requestAnimationFrame(() => resizeFunc());
@@ -131,28 +148,103 @@ export class ResizeService {
     });
   }
 
-  private onResize() {
-    const currentEditorWidth = this.containers.editor.offsetWidth;
-    const currentDigramWidth = this.containers.diagram.offsetWidth;
-    const proportion = currentEditorWidth / (currentEditorWidth + currentDigramWidth);
+  initSidebarResizer() {
+    this.sidebarResizer.element = this.containers.sidebar.querySelector('.resizer-trigger');
 
-    const workspaceWidth = this.containers.workspace.offsetWidth;
-    const editorNewWidth = proportion * workspaceWidth;
+    this.sidebarResizer.element.addEventListener('mousedown', (ev) => {
+      this.sidebarResizer.dragging = true;
+      document.body.classList.add('is-dragging');
+      this.sidebarResizer.offset = this.sidebarResizer.element.offsetLeft - ev.x + 2;
+    });
 
-    this.containers.editor.style.width = editorNewWidth + 'px';
-    this.containers.diagram.style.width = workspaceWidth - editorNewWidth + 'px';
+    document.addEventListener('mouseup', () => {
+      if (this.sidebarResizer.dragging) {
+        document.body.classList.remove('is-dragging');
+        this.sidebarResizer.dragging = false;
+      }
+    });
+
+    document.addEventListener('mousemove', (event) => {
+      if (!this.sidebarResizer.dragging) {
+        return;
+      }
+
+      const resizeFunc = () => {
+        const sidebarNewWidth = event.x + this.sidebarResizer.offset;
+
+        // Прекращаем ресайзинг, если ширина сайдбара больше чем минимально разрешенная ширина рабочей области
+        if (sidebarNewWidth > (document.body.offsetWidth - this.workspaceResizer.min * 2)) {
+          return;
+        }
+
+        // Скрываем сайдбар, если человек продолжает пытаться его уменьшать
+        if (sidebarNewWidth < this.sidebarResizer.min) {
+          if (sidebarNewWidth < (this.sidebarResizer.min - this.sidebarResizer.margin)) {
+            this.hideSidebar();
+            return;
+          }
+          return;
+        }
+
+        this.sizes.sidebar = sidebarNewWidth;
+        this.containers.sidebar.style.width = sidebarNewWidth + 'px';
+        this.fixWorkspace();
+
+        if (!this.isSidebarOpen) {
+          this.isSidebarOpen = true;
+          this.onSidebarToggleSub.next(this.isSidebarOpen);
+        }
+      };
+
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => resizeFunc());
+      } else {
+        resizeFunc();
+      }
+    });
   }
 
+  private onWindowResize() {
+    const { newEditorWidth, newDiagramWidth } = this.calculateNewWorkspaceValues();
+
+    if (document.body.offsetWidth < (this.containers.sidebar.offsetWidth + newEditorWidth + newDiagramWidth)) {
+      this.sizes.sidebar = document.body.offsetWidth - newEditorWidth - newDiagramWidth;
+      this.containers.sidebar.style.width = this.sizes.sidebar + 'px';
+    }
+
+    this.containers.editor.style.width = newEditorWidth + 'px';
+    this.containers.diagram.style.width = newDiagramWidth + 'px';
+  }
+
+  //  Метод который пересчитывает ширину редактора и области диаграмм
   private fixWorkspace() {
-    const currentEditorWidth = this.containers.editor.offsetWidth;
-    const currentDigramWidth = this.containers.diagram.offsetWidth;
-    const proportion = currentEditorWidth / (currentEditorWidth + currentDigramWidth);
+    const { newEditorWidth, newDiagramWidth } = this.calculateNewWorkspaceValues();
 
+    this.containers.editor.style.width = newEditorWidth + 'px';
+    this.containers.diagram.style.width = newDiagramWidth + 'px';
+  }
+
+  private calculateNewWorkspaceValues() {
     const workspaceWidth = this.containers.workspace.offsetWidth;
-    const editorNewWidth = proportion * workspaceWidth;
 
-    this.containers.editor.style.width = editorNewWidth + 'px';
-    this.containers.diagram.style.width = workspaceWidth - editorNewWidth + 'px';
+    let newEditorWidth = this.workspaceResizer.proportion * workspaceWidth;
+
+    newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
+
+    let newDiagramWidth = workspaceWidth - newEditorWidth;
+
+    if (newDiagramWidth < this.workspaceResizer.min) {
+      newDiagramWidth = this.workspaceResizer.min;
+      newEditorWidth = workspaceWidth - newDiagramWidth;
+      newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
+    }
+
+    this.workspaceResizer.proportion = newEditorWidth / workspaceWidth;
+
+    return {
+      newEditorWidth,
+      newDiagramWidth
+    }
   }
 
 }
