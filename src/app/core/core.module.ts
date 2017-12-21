@@ -10,6 +10,7 @@ import { UtilsService } from './utils.service';
 import { FileService } from './file.service';
 import { InitializationService } from './initialization.service';
 import { DragService } from './drag.service';
+import { ResizeService } from 'app/core/resize.service';
 
 export function initService(init: InitializationService) {
   return () => init.initApp();
@@ -29,6 +30,7 @@ export function initService(init: InitializationService) {
     FileService,
     InitializationService,
     DragService,
+    ResizeService,
 
     {
       provide: APP_INITIALIZER,

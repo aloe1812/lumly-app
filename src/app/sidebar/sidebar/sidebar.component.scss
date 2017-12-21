@@ -1,12 +1,15 @@
 @import '../../../assets/styles/variables';
 
 :host {
-  display: flex;
-  flex-direction: column;
   flex: 0 0 auto;
   width: 250px;
-  background: rgb(252, 252, 252);
-  border-right: 1px solid $divider-color;
+  > div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgb(252, 252, 252);
+    border-right: 1px solid $divider-color;
+  }
 }
 
 app-project {

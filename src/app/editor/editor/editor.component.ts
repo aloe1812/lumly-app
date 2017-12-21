@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 import { ElectronService } from '../../core/electron.service';
+import { ResizeService } from 'app/core/resize.service';
 
 import * as CodeMirror from 'CodeMirror';
 import { Subject } from 'rxjs/Subject';
@@ -20,13 +21,15 @@ export class EditorComponent implements OnInit {
   editor;
   activeFile;
   lastFileChangedStatus = false;
+  isSidebarOpen = true;
 
   private codeTerms = new Subject<string>();
 
   constructor(
     private store: StoreService,
     private projectService: ProjectService,
-    private electronService: ElectronService
+    private electronService: ElectronService,
+    private resizeService: ResizeService
   ) { }
 
   ngOnInit() {
@@ -34,6 +37,14 @@ export class EditorComponent implements OnInit {
     this.subscribeToActiveFile();
     this.subscribeToCodeChange();
     this.subscribeToProjectSaved();
+
+    this.resizeService.onSidebarToggle.subscribe(isOpen => {
+      this.isSidebarOpen = isOpen;
+    });
+  }
+
+  showSidebar() {
+    this.resizeService.showSidebar();
   }
 
   private initEditor() {
