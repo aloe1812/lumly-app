@@ -63,7 +63,11 @@ export class FileComponent implements OnInit {
       delete this.file._checkPosition;
 
       this.checkIfPositionChanged();
-      this.store.event('File:Show:Path').emit(this.filePath);
+
+      if (this.isFile) {
+        this.store.event('File:Show:Path').emit(this.filePath);
+      }
+
       this.positionChanged.emit();
     }
   }
