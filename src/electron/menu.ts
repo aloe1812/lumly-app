@@ -31,17 +31,9 @@ const template: any = [
     label: 'View',
     submenu: [
       {
-        label: 'Reload',
-        accelerator: 'CmdOrCtrl+R',
+        label: 'Restore default layout',
         click (item, focusedWindow) {
-          if (focusedWindow) { focusedWindow.reload(); }
-        }
-      },
-      {
-        label: 'Toggle Developer Tools',
-        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-        click (item, focusedWindow) {
-          if (focusedWindow) { focusedWindow.webContents.toggleDevTools(); }
+          if (focusedWindow) { focusedWindow.webContents.send('Restore:Default-Layout'); }
         }
       },
       {
@@ -61,7 +53,24 @@ const template: any = [
       },
       {
         role: 'togglefullscreen'
-      }
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click (item, focusedWindow) {
+          if (focusedWindow) { focusedWindow.reload(); }
+        }
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+        click (item, focusedWindow) {
+          if (focusedWindow) { focusedWindow.webContents.toggleDevTools(); }
+        }
+      },
     ]
   },
   {
