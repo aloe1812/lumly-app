@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { ElectronService } from 'app/core/electron.service';
+import * as clone from 'lodash/clone';
 
 @Injectable()
 export class ResizeService {
@@ -54,21 +56,33 @@ export class ResizeService {
   onSidebarToggle = this.onSidebarToggleSub.asObservable();
 
   private containers;
-  private sizes = {
-    sidebar: 250
+
+  private defaultSizes = {
+    sidebar: 250,
+    workspaceProportion: 0.5
   };
+
+  private sizes = {
+    sidebar: 250,
+    workspaceProportion: 0.5
+  };
+
   private workspaceResizer: any  = {
     min: 120,
-    dragging: false,
-    proportion: 0.5
+    dragging: false
   };
+
   private sidebarResizer: any  = {
     min: 120,
     margin: 40,
     dragging: false
   };
 
-  constructor() { }
+  constructor(
+    private electronService: ElectronService
+  ) {
+    this.subscribeToElectronEvents();
+  }
 
   init(rootElement) {
     this.containers = {
@@ -134,7 +148,7 @@ export class ResizeService {
           editorNewWidth = this.workspaceResizer.workspaceWidth - diagramNewWidth;
         }
 
-        this.workspaceResizer.proportion = editorNewWidth / this.workspaceResizer.workspaceWidth;
+        this.sizes.workspaceProportion = editorNewWidth / this.workspaceResizer.workspaceWidth;
 
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
@@ -227,7 +241,7 @@ export class ResizeService {
   private calculateNewWorkspaceValues() {
     const workspaceWidth = this.containers.workspace.offsetWidth;
 
-    let newEditorWidth = this.workspaceResizer.proportion * workspaceWidth;
+    let newEditorWidth = this.sizes.workspaceProportion * workspaceWidth;
 
     newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
 
@@ -239,12 +253,23 @@ export class ResizeService {
       newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
     }
 
-    this.workspaceResizer.proportion = newEditorWidth / workspaceWidth;
+    this.sizes.workspaceProportion = newEditorWidth / workspaceWidth;
 
     return {
       newEditorWidth,
       newDiagramWidth
     }
+  }
+
+  private subscribeToElectronEvents() {
+    this.electronService.ipcRenderer.on('Restore:Default-Layout', () => {
+      if (!this.containers) {
+        return;
+      }
+
+      this.sizes = clone(this.defaultSizes);
+      this.showSidebar();
+    });
   }
 
 }

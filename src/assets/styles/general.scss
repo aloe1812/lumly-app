@@ -43,6 +43,7 @@ input, button {
 
 .is-dragging {
   cursor: col-resize !important;
+  user-select: none !important;
   .editor .main {
     user-select: none;
   }
