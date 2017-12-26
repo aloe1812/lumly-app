@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
+import { ipcRenderer } from 'electron';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { ElectronService } from 'app/core/electron.service';
 import * as clone from 'lodash/clone';
 
 @Injectable()
@@ -78,9 +78,7 @@ export class ResizeService {
     dragging: false
   };
 
-  constructor(
-    private electronService: ElectronService
-  ) {
+  constructor() {
     this.subscribeToElectronEvents();
   }
 
@@ -262,7 +260,7 @@ export class ResizeService {
   }
 
   private subscribeToElectronEvents() {
-    this.electronService.ipcRenderer.on('Restore:Default-Layout', () => {
+    ipcRenderer.on('Restore:Default-Layout', () => {
       if (!this.containers) {
         return;
       }

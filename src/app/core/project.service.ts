@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
-import { ElectronService } from 'app/core/electron.service';
+import { ipcRenderer } from 'electron';
 import { Subject } from 'rxjs/Subject';
 
 import * as forEach from 'lodash/forEach';
@@ -24,8 +24,7 @@ export class ProjectService {
   public projectOpened = this.projectOpenedSub.asObservable();
 
   constructor(
-    private store: StoreService,
-    private electronService: ElectronService
+    private store: StoreService
   ) {
     this.subscribeToElectronEvents();
   }
@@ -205,23 +204,23 @@ export class ProjectService {
   }
 
   openProject() {
-    this.electronService.ipcRenderer.send('Open:Project');
+    ipcRenderer.send('Open:Project');
   }
 
   openRecentProject(project) {
-    this.electronService.ipcRenderer.send('Open:Project:Recent', project);
+    ipcRenderer.send('Open:Project:Recent', project);
   }
 
   saveProject() {
     const projectData = this.getProjectDataForSave();
 
     if (this.activeProject.project.path) {
-      this.electronService.ipcRenderer.send('Project:Save', {
+      ipcRenderer.send('Project:Save', {
         path: this.activeProject.project.path,
         file: JSON.stringify(projectData)
       });
     } else {
-      this.electronService.ipcRenderer.send('Project:SaveAs', {
+      ipcRenderer.send('Project:SaveAs', {
         file: JSON.stringify(projectData),
         fileName: projectData.project.title
       });
@@ -231,7 +230,7 @@ export class ProjectService {
   private subscribeToElectronEvents() {
 
     // Событие после того как проект был открыт
-    this.electronService.ipcRenderer.on('Project:Opened', (event, data) => {
+    ipcRenderer.on('Project:Opened', (event, data) => {
       try {
         const project = this.parseProjectFile(data.file)
 
@@ -248,23 +247,23 @@ export class ProjectService {
     });
 
     // Ошибка при открытии файла
-    this.electronService.ipcRenderer.on('Project:Opened:Error', () => {
+    ipcRenderer.on('Project:Opened:Error', () => {
       alert(`Error: Project file cannot be found`);
     });
 
     // Ошибка если не смог открытся недавний файл (это скорее всего из-за того что он удален)
-    this.electronService.ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
+    ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
       remove(this.recent, project);
       alert(`Error: Project file cannot be found`);
     });
 
     // Ошибка после попытки открытия проекта: неверное расширение файла
-    this.electronService.ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
+    ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
       alert(`Error: File extension is incorrect. Must be 'lumly'`);
     });
 
     // Событие после того как проект был сохранен
-    this.electronService.ipcRenderer.on('Project:Saved', (event, path) => {
+    ipcRenderer.on('Project:Saved', (event, path) => {
       // if path was created (i.e. locally created project was saved)
       if (path) {
         this.activeProject.project.path = path;
@@ -274,22 +273,22 @@ export class ProjectService {
     });
 
     // Ошибка при сохранении файла
-    this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
+    ipcRenderer.on('Project:Saved:Error', () => {
       alert('There was an error on saving file');
     });
 
     // Ошибка, если файл не существует в том месте, откуда был изначально открыт
-    this.electronService.ipcRenderer.on('Project:Saved:Error:Exist', (event, data) => {
+    ipcRenderer.on('Project:Saved:Error:Exist', (event, data) => {
       alert('Error: Cannot find path. Perhaps project file was relocated. Please, select where to save project file.');
 
-      this.electronService.ipcRenderer.send('Project:SaveAs', {
+      ipcRenderer.send('Project:SaveAs', {
         file: data.file,
         fileName: data.fileName || data.file.project.title
       });
     });
 
     // Сохраняем данные о недавних проектах
-    this.electronService.ipcRenderer.on('App:Before-Quit', () => {
+    ipcRenderer.on('App:Before-Quit', () => {
 
       const currentProjects = [];
 
@@ -316,7 +315,7 @@ export class ProjectService {
       }
 
       // Отправляем на сохранение
-      this.electronService.ipcRenderer.send('Store:Save:Recent', recentToSave);
+      ipcRenderer.send('Store:Save:Recent', recentToSave);
     });
   }
 

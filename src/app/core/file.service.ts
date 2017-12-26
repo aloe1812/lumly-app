@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
-import { ElectronService } from 'app/core/electron.service';
+import { ipcRenderer } from 'electron';
 
 @Injectable()
 export class FileService {
 
   private activeContextFileRef;
 
-  constructor(
-    private electronService: ElectronService
-  ) {
+  constructor() {
     this.subscribeToElectronEvents();
   }
 
@@ -75,11 +73,11 @@ export class FileService {
 
   openFileContextMenu(fileRef, params) {
     this.activeContextFileRef = fileRef;
-    this.electronService.ipcRenderer.send('File:Context-Menu:Open', params);
+    ipcRenderer.send('File:Context-Menu:Open', params);
   }
 
   private subscribeToElectronEvents() {
-    this.electronService.ipcRenderer.on('File:Context-Menu:Clicked', (event, type) => {
+    ipcRenderer.on('File:Context-Menu:Clicked', (event, type) => {
       this.activeContextFileRef.handleMenuEvent(type);
     });
   }

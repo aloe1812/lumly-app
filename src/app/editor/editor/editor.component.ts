@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
-import { ElectronService } from '../../core/electron.service';
 import { ResizeService } from 'app/core/resize.service';
 import { GenerationService } from 'app/core/generation.service';
+import { ipcRenderer } from 'electron';
 
 import * as CodeMirror from 'CodeMirror';
 import { Subject } from 'rxjs/Subject';
@@ -33,7 +33,6 @@ export class EditorComponent implements OnInit {
   constructor(
     private store: StoreService,
     private projectService: ProjectService,
-    private electronService: ElectronService,
     private resizeService: ResizeService,
     private generationService: GenerationService
   ) { }
@@ -117,7 +116,7 @@ export class EditorComponent implements OnInit {
   }
 
   private subscribeToProjectSaved() {
-    this.electronService.ipcRenderer.on('Project:Saved', () => {
+    ipcRenderer.on('Project:Saved', () => {
       this.lastFileChangedStatus = false;
     });
   }
