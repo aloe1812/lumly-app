@@ -3,6 +3,7 @@ import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 import { ElectronService } from '../../core/electron.service';
 import { ResizeService } from 'app/core/resize.service';
+import { GenerationService } from 'app/core/generation.service';
 
 import * as CodeMirror from 'CodeMirror';
 import { Subject } from 'rxjs/Subject';
@@ -19,9 +20,13 @@ export class EditorComponent implements OnInit {
   @ViewChild('textarea') textarea: ElementRef;
 
   editor;
+  mark;
+
   activeFile;
   lastFileChangedStatus = false;
+
   isSidebarOpen = true;
+  isCodeReviewing = false;
 
   private codeTerms = new Subject<string>();
 
@@ -29,7 +34,8 @@ export class EditorComponent implements OnInit {
     private store: StoreService,
     private projectService: ProjectService,
     private electronService: ElectronService,
-    private resizeService: ResizeService
+    private resizeService: ResizeService,
+    private generationService: GenerationService
   ) { }
 
   ngOnInit() {
@@ -56,6 +62,8 @@ export class EditorComponent implements OnInit {
       tabSize: 2
     });
 
+    this.generationService.setEditor(this.editor);
+
     this.editor.on('change', (codemirror) => {
       this.codeTerms.next(codemirror.getValue());
     });
@@ -78,6 +86,7 @@ export class EditorComponent implements OnInit {
   private subscribeToCodeChange() {
     this.codeTerms.debounceTime(450).subscribe((code) => {
       this.setNewFileContent(code);
+      this.checkCode();
     });
   }
 
@@ -111,6 +120,21 @@ export class EditorComponent implements OnInit {
     this.electronService.ipcRenderer.on('Project:Saved', () => {
       this.lastFileChangedStatus = false;
     });
+  }
+
+  private checkCode() {
+    this.isCodeReviewing = true;
+    this.generationService.checkCode(this.activeFile.content)
+      .subscribe(
+        (diagram) => {
+          this.store.data('JSON-UML').set(diagram);
+          this.isCodeReviewing = false;
+        },
+        () => {
+          this.store.data('JSON-UML').set(null);
+          this.isCodeReviewing = false;
+        }
+      );
   }
 
 }

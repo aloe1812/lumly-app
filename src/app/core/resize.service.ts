@@ -68,7 +68,7 @@ export class ResizeService {
   };
 
   private workspaceResizer: any  = {
-    min: 120,
+    min: 130,
     dragging: false
   };
 
