@@ -21,7 +21,6 @@ export class DiagramComponent implements OnInit {
       (json) => {
         if (json) {
           this.uml.draw(json);
-          // this.uml.draw(`{"title":"Some diagram","type":"usecase-diagram","definitions":{"Actor01":{"title":"John Doe","type":"actor"}}}`);
         } else if (this.uml.diagram) {
           this.uml.diagram.clear();
         }

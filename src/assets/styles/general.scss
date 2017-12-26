@@ -49,6 +49,10 @@ input, button {
   }
 }
 
+canvas:focus {
+  outline: none;
+}
+
 /*** scrollbar styles ***/
 ::-webkit-scrollbar {
   width: 8px;
