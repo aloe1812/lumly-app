@@ -8,9 +8,14 @@ export class InitializationService {
   constructor(
     private projectService: ProjectService
   ) {
+    const currentWindow = remote.getCurrentWindow();
+
     ipcRenderer.once('Window:Before-Close', (ev) => {
       const recent = this.projectService.getRecentProjects();
-      ipcRenderer.send('SaveRecentAndClose', recent);
+      const isSaved = ipcRenderer.sendSync('SaveRecentAndClose', recent);
+      if (isSaved) {
+        currentWindow.close();
+      }
     });
   }
 

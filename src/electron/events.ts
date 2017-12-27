@@ -130,7 +130,7 @@ export class AppEvents {
       event.returnValue = data;
     });
 
-    ipcMain.on('SaveRecentAndClose', (ev, recent) => {
+    ipcMain.on('SaveRecentAndClose', (event, recent) => {
       for (let i = 0; i < recent.length; i++) {
         if (!recent[i].title) {
           recent[i].title = path.basename(recent[i].path)
@@ -139,7 +139,7 @@ export class AppEvents {
 
       this.store.set('recent', recent);
 
-      BrowserWindow.getFocusedWindow().close();
+      event.returnValue = true;
     });
   }
 
