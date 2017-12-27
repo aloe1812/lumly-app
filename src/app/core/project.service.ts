@@ -227,6 +227,34 @@ export class ProjectService {
     }
   }
 
+  getRecentProjects() {
+    const currentProjects = [];
+
+    // берем те которые у нас сейчас открыты (и у которых есть файл)
+    forEach(this.projects, project => {
+      if (project.project.path) {
+        currentProjects.push({
+          path: project.project.path
+        })
+      }
+    });
+
+    // меняем порядок, чтобы последние были сверху
+    reverse(currentProjects);
+
+    // соединяем с текущим списком недавних
+    let recentToSave = unionWith(currentProjects, this.recent, (val1, val2) => {
+      return val1.path === val2.path;
+    });
+
+    // обрезаем список, если проектов больше 8
+    if (recentToSave.length > 8) {
+      recentToSave = recentToSave.slice(0, 8);
+    }
+
+    return recentToSave;
+  }
+
   private subscribeToElectronEvents() {
 
     // Событие после того как проект был открыт
@@ -285,37 +313,6 @@ export class ProjectService {
         file: data.file,
         fileName: data.fileName || data.file.project.title
       });
-    });
-
-    // Сохраняем данные о недавних проектах
-    ipcRenderer.on('App:Before-Quit', () => {
-
-      const currentProjects = [];
-
-      // берем те которые у нас сейчас открыты (и у которых есть файл)
-      forEach(this.projects, project => {
-        if (project.project.path) {
-          currentProjects.push({
-            path: project.project.path
-          })
-        }
-      });
-
-      // меняем порядок, чтобы последние были сверху
-      reverse(currentProjects);
-
-      // соединяем с текущим списком недавних
-      let recentToSave = unionWith(currentProjects, this.recent, (val1, val2) => {
-        return val1.path === val2.path;
-      });
-
-      // обрезаем список, если проектов больше 8
-      if (recentToSave.length > 8) {
-        recentToSave = recentToSave.slice(0, 8);
-      }
-
-      // Отправляем на сохранение
-      ipcRenderer.send('Store:Save:Recent', recentToSave);
     });
   }
 

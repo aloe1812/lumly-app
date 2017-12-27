@@ -23,8 +23,8 @@ if (serve) {
 
 // Сохраняем ссылку на глобальный объект окна, в противном случае окно будет закрыто
 // автоматически, когда сборщик мусора удалит объект
-let mainWindow;
-const appEvents = new AppEvents();
+const windows = [];
+const appEvents = new AppEvents({store});
 
 // Общеее контекстное меню
 const contextMenu = new Menu();
@@ -55,7 +55,7 @@ function createWindow() {
 
   const bounds = getMainWindowBounds();
 
-  mainWindow = new BrowserWindow({
+  let win = new BrowserWindow({
     title: 'Lumly',
     backgroundColor: '#111111',
     width: bounds.width,
@@ -69,25 +69,30 @@ function createWindow() {
     }
   });
 
-  appEvents.setDependencies({
-    window: mainWindow,
-    store: store
-  });
+  windows.push(win);
 
   // and load the index.html of the app.
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  win.loadURL(`file://${__dirname}/index.html`);
 
   // Open the DevTools
   if (serve) {
-    mainWindow.webContents.openDevTools();
+    win.webContents.openDevTools();
   }
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null;
+  // Если закрыли окно, очишаем его и удаляем из массива
+  win.on('closed', function () {
+    const winIndex = windows.indexOf(win);
+
+    if (winIndex !== -1) {
+      windows.splice(winIndex, 1);
+    }
+
+    win = null;
+  });
+
+  win.once('close', (event) => {
+    event.preventDefault();
+    win.webContents.send('Window:Before-Close');
   });
 
   setMenu();
@@ -106,7 +111,7 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
+  if (!windows.length) {
     createWindow();
   }
 });

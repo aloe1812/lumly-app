@@ -1,24 +1,24 @@
 import { Injectable } from '@angular/core';
 import { ProjectService } from 'app/core/project.service';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 
 @Injectable()
 export class InitializationService {
 
   constructor(
     private projectService: ProjectService
-  ) { }
+  ) {
+    ipcRenderer.once('Window:Before-Close', (ev) => {
+      const recent = this.projectService.getRecentProjects();
+      ipcRenderer.send('SaveRecentAndClose', recent);
+    });
+  }
 
   // Перед загрузкой приложения берем загружаем данные о недавних файлах
   initApp() {
     return new Promise(resolve => {
-      ipcRenderer.send('Store:Get:Recent');
-
-      ipcRenderer.on('Store:Got:Recent', (ev, data) => {
-        this.projectService.recent = data ? data : [];
-        ipcRenderer.removeAllListeners('Store:Got:Recent');
-        resolve();
-      });
+      this.projectService.recent = ipcRenderer.sendSync('Store:Get:Recent');
+      resolve();
     });
   }
 

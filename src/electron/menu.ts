@@ -1,5 +1,7 @@
 import { app, Menu, shell, MenuItem } from 'electron';
 
+let isMenuCreated = false;
+
 const template: any = [
   {
     label: 'Edit',
@@ -152,6 +154,11 @@ if (process.platform === 'darwin') {
 }
 
 export function setMenu() {
+  if (isMenuCreated) {
+    return;
+  }
+
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu);
+  isMenuCreated = true;
 }

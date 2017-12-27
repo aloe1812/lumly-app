@@ -56,6 +56,7 @@ export class ResizeService {
   onSidebarToggle = this.onSidebarToggleSub.asObservable();
 
   private containers;
+  private uml;
 
   private defaultSizes = {
     sidebar: 250,
@@ -93,6 +94,10 @@ export class ResizeService {
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
 
     this.optimizedResize.add(this.onWindowResize.bind(this));
+  }
+
+  setUml(uml) {
+    this.uml = uml;
   }
 
   showSidebar() {
@@ -150,6 +155,10 @@ export class ResizeService {
 
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
+
+        if (this.uml.diagram) {
+          this.uml.diagram.update();
+        }
       };
 
       if (window.requestAnimationFrame) {
@@ -226,6 +235,10 @@ export class ResizeService {
 
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
+
+    if (this.uml.diagram) {
+      this.uml.diagram.update();
+    }
   }
 
   //  Метод который пересчитывает ширину редактора и области диаграмм
@@ -234,6 +247,10 @@ export class ResizeService {
 
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
+
+    if (this.uml.diagram) {
+      this.uml.diagram.update();
+    }
   }
 
   private calculateNewWorkspaceValues() {

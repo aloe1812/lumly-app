@@ -1,6 +1,6 @@
 {
   "name": "lumly",
-  "version": "0.0.1-build.6",
+  "version": "0.0.1-build.7",
   "author": {
     "name": "Eugene Krakosevich",
     "email": "krakosevich93@gmail.com"
@@ -36,7 +36,7 @@
     "@angular/platform-browser": "5.0.3",
     "@angular/platform-browser-dynamic": "5.0.3",
     "@angular/router": "5.0.3",
-    "@dudes/lumly.uml.viewer": "0.0.1-build.4",
+    "@dudes/lumly.uml.viewer": "0.0.2-build.1",
     "codemirror": "^5.32.0",
     "core-js": "2.4.1",
     "dom-autoscroller": "^2.3.3",
