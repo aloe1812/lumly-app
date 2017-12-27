@@ -22,6 +22,9 @@ export class InitializationService {
   // Перед загрузкой приложения берем загружаем данные о недавних файлах
   initApp() {
     return new Promise(resolve => {
+      const platform = ipcRenderer.sendSync('Utils:Get:Platform');
+      document.body.classList.add(platform);
+
       this.projectService.recent = ipcRenderer.sendSync('Store:Get:Recent');
       resolve();
     });

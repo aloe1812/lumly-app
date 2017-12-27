@@ -68,8 +68,12 @@
   width: 100%; height: 100%;
 }
 
-.CodeMirror-scroll {
-	overflow: hidden !important;
+.CodeMirror-lines {
+  padding-bottom: 10px;
+}
+
+.darwin .CodeMirror-scroll {
+  overflow-x: hidden !important;
 }
 
 .editor .CodeMirror-gutters {
@@ -81,6 +85,7 @@
 .editor .CodeMirror {
   flex: 1 1 auto;
   height: initial;
+  padding-right: 8px;
 }
 
 .editor-mark-error {

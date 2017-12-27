@@ -32,7 +32,7 @@ export class DiagramComponent implements OnInit {
           this.uml.diagram.clear();
         }
       }
-    )
+    );
   }
 
 }

@@ -57,6 +57,7 @@ export class ResizeService {
 
   private containers;
   private uml;
+  private editor;
 
   private defaultSizes = {
     sidebar: 250,
@@ -98,6 +99,10 @@ export class ResizeService {
 
   setUml(uml) {
     this.uml = uml;
+  }
+
+  setEditor(editor) {
+    this.editor = editor;
   }
 
   showSidebar() {
@@ -156,6 +161,7 @@ export class ResizeService {
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
 
+        this.editor.refresh();
         if (this.uml.diagram) {
           this.uml.diagram.update();
         }
@@ -248,6 +254,7 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
+    this.editor.refresh();
     if (this.uml.diagram) {
       this.uml.diagram.update();
     }

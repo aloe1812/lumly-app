@@ -12,6 +12,7 @@ export class AppEvents {
     this.registerOpenProjectEvent();
     this.registerSaveProjectEvent();
     this.registerStoreEvents();
+    this.registerUtilsEvents();
   }
 
   private registerOpenProjectEvent() {
@@ -140,6 +141,12 @@ export class AppEvents {
       this.store.set('recent', recent);
 
       event.returnValue = true;
+    });
+  }
+
+  private registerUtilsEvents() {
+    ipcMain.on('Utils:Get:Platform', (event) => {
+      event.returnValue = process.platform;
     });
   }
 

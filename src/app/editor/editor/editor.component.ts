@@ -6,6 +6,7 @@ import { GenerationService } from 'app/core/generation.service';
 import { ipcRenderer } from 'electron';
 
 import * as CodeMirror from 'CodeMirror';
+import 'CodeMirror/addon/scroll/simplescrollbars';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import * as has from 'lodash/has';
@@ -62,6 +63,7 @@ export class EditorComponent implements OnInit {
     });
 
     this.generationService.setEditor(this.editor);
+    this.resizeService.setEditor(this.editor);
 
     this.editor.on('change', (codemirror) => {
       this.codeTerms.next(codemirror.getValue());
