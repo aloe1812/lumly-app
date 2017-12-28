@@ -10,15 +10,7 @@ export class InitializationService {
 
   constructor(
     private projectService: ProjectService
-  ) {
-    ipcRenderer.once('Window:Before-Close', (ev) => {
-      const recentProjects = this.projectService.getRecentProjects();
-      const isSaved = ipcRenderer.sendSync('Save:Recent', recentProjects);
-      if (isSaved) {
-        this.currentWindow.close();
-      }
-    });
-  }
+  ) { }
 
   // Перед загрузкой приложения берем загружаем данные о недавних файлах
   initApp() {

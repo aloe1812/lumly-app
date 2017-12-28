@@ -2,16 +2,10 @@ import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } fr
 import * as log from 'electron-log';
 import './electron/events';
 import { setTopMenu, contextMenu, fileContextMenu } from './electron/menu';
-import { store } from './electron/store';
+import { recents } from './electron/store';
+import { getWindowBounds } from './electron/utils';
 
 log.transports.file.level = 'info'; // tmp
-
-const DEFAULT_SIZES = {
-  width: 1200,
-  height: 700,
-  minWidth: 500,
-  minHeight: 300
-};
 
 let openedFromPath;
 
@@ -28,14 +22,14 @@ const windows = [];
 
 // Различного рода перемененные
 const dataForWindow = {
-  recentFiles: store.get('recentFiles', null),
+  recentFiles: recents.get(),
   platform: process.platform
 }
 
 // Функция для создания окна приложения
 function createWindow(data?) {
 
-  const bounds = getMainWindowBounds();
+  const bounds = getWindowBounds();
 
   let win = new BrowserWindow({
     title: 'Lumly',
@@ -74,11 +68,6 @@ function createWindow(data?) {
     win = null;
   });
 
-  win.once('close', (event) => {
-    event.preventDefault();
-    win.webContents.send('Window:Before-Close');
-  });
-
   setTopMenu();
 }
 
@@ -105,7 +94,7 @@ app.on('ready', () => {
   }
 });
 
-// Quit when all windows are closed.
+// Закрыть приложение, если закрыли все окна
 app.on('window-all-closed', function () {
   app.quit();
 });
@@ -118,13 +107,30 @@ app.on('activate', function () {
   }
 });
 
-// Показывает контекстное меню
+// Сохраняем список недавних в файл
+app.on('quit', () => {
+  recents.saveToStore();
+});
+
+// Показываем контекстное меню
 app.on('browser-window-created', function (event, win) {
   win.webContents.on('context-menu', function (e, params) {
     contextMenu.popup(win, {
       x: params.x,
       y: params.y
     });
+  });
+});
+
+recents.onUpdate((files) => {
+  dataForWindow.recentFiles = files;
+
+  this.windows.forEach(window => {
+    if (window.isDestroyed()) {
+      return;
+    }
+
+    // window.webContents.send('Recent:Update', files);
   });
 });
 
@@ -144,23 +150,3 @@ ipcMain.on('File:Context-Menu:Open', function (event, params) {
 ipcMain.on('Open:New:Project:FromData', function(event, projectData) {
   createWindow({projectData});
 });
-
-// Helpers
-function getMainWindowBounds() {
-  const displayWorkArea = screen.getPrimaryDisplay().workArea;
-
-  const width = DEFAULT_SIZES.width > displayWorkArea.width ? displayWorkArea.width : DEFAULT_SIZES.width;
-  const height = DEFAULT_SIZES.height > displayWorkArea.height ? displayWorkArea.height : DEFAULT_SIZES.height;
-
-  const x = displayWorkArea.x + ((displayWorkArea.width - width) / 2);
-  const y = displayWorkArea.y + ((displayWorkArea.height - height) / 2);
-
-  return {
-    width,
-    height,
-    x,
-    y,
-    minWidth: DEFAULT_SIZES.minWidth,
-    minHeight: DEFAULT_SIZES.minHeight
-  };
-}

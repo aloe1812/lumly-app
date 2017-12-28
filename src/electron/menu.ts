@@ -1,5 +1,7 @@
 import { app, Menu, shell, MenuItem } from 'electron';
+import * as path from 'path';
 import { openNewProject } from './events';
+import { recents } from './store';
 
 /***********************************************
 * ============ Верхнее меню ============= *
@@ -33,7 +35,8 @@ const topMenuTemplate: any = [
         }
       },
       {
-        label: 'Open Recent'
+        label: 'Open Recent',
+        submenu: getRecentsSubmenu()
       },
       {
         type: 'separator'
@@ -203,6 +206,27 @@ if (process.platform === 'darwin') {
       role: 'front'
     }
   ]
+}
+
+function getRecentsSubmenu() {
+  const template = [];
+
+  const recentFiles = recents.get();
+
+  if (recentFiles && recentFiles.length) {
+    recentFiles.forEach(recentFile => {
+      template.push({
+        label: path.basename(recentFile.path),
+      });
+    });
+  } else {
+    template.push({
+      label: 'No recent projects',
+      enabled: false
+    });
+  }
+
+  return template;
 }
 
 export function setTopMenu() {
