@@ -10,7 +10,6 @@ import { SvgIconService } from './svg-icon.service';
 export class SvgIconComponent implements OnInit {
 
   @Input() icon: string;
-  @Input() src: string;
 
   constructor(
     private svgIconService: SvgIconService,
@@ -18,22 +17,10 @@ export class SvgIconComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    if (this.src) {
-      this.svgIconService.getIconBySrc(this.src)
-        .then(icon => {
-          if (icon) {
-            this.elementRef.nativeElement.appendChild(icon);
-          }
-        });
-    } else if (this.icon) {
-      this.svgIconService.getIconByName(this.icon)
-        .then(icon => {
-          if (icon) {
-            this.elementRef.nativeElement.appendChild(icon);
-          }
-        });
+    const svg = this.svgIconService.getIcon(this.icon);
+    if (svg) {
+      this.elementRef.nativeElement.appendChild(svg);
     }
-
   }
 
 }

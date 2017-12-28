@@ -1,6 +1,6 @@
 {
   "name": "lumly",
-  "version": "0.0.1-build.8",
+  "version": "0.0.1-build.9",
   "author": {
     "name": "Eugene Krakosevich",
     "email": "krakosevich93@gmail.com"
@@ -64,6 +64,7 @@
     "cssnano": "3.10.0",
     "electron": "^1.7.10",
     "electron-builder": "^19.49.2",
+    "electron-log": "^2.2.13",
     "electron-reload": "^1.2.2",
     "electron-store": "^1.3.0",
     "electron-toolkit": "^1.0.24",

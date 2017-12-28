@@ -1,153 +1,181 @@
 import { BrowserWindow, ipcMain, dialog, app } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { store } from './store';
 
-export class AppEvents {
+// Открываем проект через меню
+ipcMain.on('Open:Project', (event, data) => {
 
-  store;
+  const dialogProps: any = {
+    filters: {
+      name: 'Lumly project',
+      extensions: ['lumly']
+    },
+    properties: ['openFile']
+  };
 
-  constructor(data) {
-    this.store = data.store;
+  dialog.showOpenDialog(dialogProps, (filePaths) => {
+    if (!filePaths) {
+      return;
+    }
 
-    this.registerOpenProjectEvent();
-    this.registerSaveProjectEvent();
-    this.registerStoreEvents();
-    this.registerUtilsEvents();
-  }
+    const filePath = filePaths[0];
 
-  private registerOpenProjectEvent() {
-    ipcMain.on('Open:Project', (event, data) => {
+    if (path.extname(filePath) !== '.lumly') {
+      event.sender.webContents.send('Project:Opened:Error:Extenstion');
+      return;
+    }
 
-      const dialogProps: any = {
-        filters: {
-          name: 'Lumly project',
-          extensions: ['lumly']
-        },
-        properties: ['openFile']
-      };
-
-      dialog.showOpenDialog(dialogProps, (filePaths) => {
-        if (!filePaths) {
-          return;
-        }
-
-        const filePath = filePaths[0];
-
-        if (path.extname(filePath) !== '.lumly') {
-          event.sender.webContents.send('Project:Opened:Error:Extenstion');
-          return;
-        }
-
-        fs.readFile(filePath, 'utf8', (err, contents) => {
-          if (err) {
-            event.sender.webContents.send('Project:Opened:Error');
-            return;
-          }
-
-          event.sender.webContents.send('Project:Opened', {
-            file: contents,
-            path: filePath
-          });
-        });
-      });
-
-    });
-
-    ipcMain.on('Open:Project:Recent', (event, project) => {
-      if (path.extname(project.path) !== '.lumly') {
-        event.sender.webContents.send('Project:Opened:Error:Extenstion');
+    fs.readFile(filePath, 'utf8', (err, contents) => {
+      if (err) {
+        event.sender.webContents.send('Project:Opened:Error');
         return;
       }
 
-      fs.readFile(project.path, 'utf8', (err, contents) => {
-        if (err) {
-          event.sender.webContents.send('Project:Recent:Opened:Error', project);
-          return;
-        }
-
-        event.sender.webContents.send('Project:Opened', {
-          file: contents,
-          path: project.path
-        });
+      event.sender.webContents.send('Project:Opened', {
+        file: contents,
+        path: filePath
       });
     });
+  });
+
+});
+
+// Открываем недавний проект по пути файла
+ipcMain.on('Open:Project:Recent', (event, project) => {
+  if (path.extname(project.path) !== '.lumly') {
+    event.sender.webContents.send('Project:Opened:Error:Extenstion');
+    return;
   }
 
-  // TODO: добавить лог
-  private registerSaveProjectEvent() {
-    ipcMain.on('Project:Save', (event, data) => {
+  fs.readFile(project.path, 'utf8', (err, contents) => {
+    if (err) {
+      event.sender.webContents.send('Project:Recent:Opened:Error', project);
+      return;
+    }
 
-      // проверяем что пусть существует
-      fs.stat(data.path, (errorExist) => {
-
-        if (errorExist) {
-          event.sender.webContents.send('Project:Saved:Error:Exist', {
-            file: data.file,
-            path: data.path,
-            fileName: path.basename(data.path, '.lumly')
-          });
-          return;
-        }
-
-        fs.writeFile(data.path, data.file, (errorWrite) => {
-          if (errorWrite) {
-            event.sender.webContents.send('Project:Saved:Error');
-            return;
-          };
-
-          event.sender.webContents.send('Project:Saved');
-        });
-      });
-
+    event.sender.webContents.send('Project:Opened', {
+      file: contents,
+      path: project.path
     });
+  });
+});
 
-    ipcMain.on('Project:SaveAs', (event, data) => {
-      dialog.showSaveDialog({
-        title: 'Save project',
-        defaultPath: `${app.getPath('downloads')}/${ data.fileName || 'project' }.lumly`,
-        filters: [
-          { name: '', extensions: ['lumly'] }
-        ]
-      }, (filePath) => {
-        if (filePath === undefined) {
-          return;
-        }
+// Сохраняем проект
+ipcMain.on('Project:Save', (event, data) => {
 
-        // save file
-        fs.writeFile(filePath, data.file, (error) => {
-          if (error) {
-            event.sender.webContents.send('Project:Saved:Error');
-            return;
-          };
-          event.sender.webContents.send('Project:Saved', filePath);
-        });
+  // проверяем что пусть существует
+  fs.stat(data.path, (errorExist) => {
+
+    if (errorExist) {
+      event.sender.webContents.send('Project:Saved:Error:Exist', {
+        file: data.file,
+        path: data.path,
+        fileName: path.basename(data.path, '.lumly')
       });
+      return;
+    }
+
+    fs.writeFile(data.path, data.file, (errorWrite) => {
+      if (errorWrite) {
+        event.sender.webContents.send('Project:Saved:Error');
+        return;
+      };
+
+      event.sender.webContents.send('Project:Saved');
     });
+  });
+
+});
+
+// Сохраняем файл как
+ipcMain.on('Project:SaveAs', (event, data) => {
+  dialog.showSaveDialog({
+    title: 'Save project',
+    defaultPath: `${app.getPath('downloads')}/${ data.fileName || 'project' }.lumly`,
+    filters: [
+      { name: '', extensions: ['lumly'] }
+    ]
+  }, (filePath) => {
+    if (filePath === undefined) {
+      return;
+    }
+
+    // save file
+    fs.writeFile(filePath, data.file, (error) => {
+      if (error) {
+        event.sender.webContents.send('Project:Saved:Error');
+        return;
+      };
+      event.sender.webContents.send('Project:Saved', filePath);
+    });
+  });
+});
+
+// Сохраняем недавние проекты
+ipcMain.on('Save:Recent', (event, recent) => {
+  for (let i = 0; i < recent.length; i++) {
+    if (!recent[i].title) {
+      recent[i].title = path.basename(recent[i].path)
+    }
   }
 
-  private registerStoreEvents() {
-    ipcMain.on('Store:Get:Recent', (event) => {
-      const data = this.store.get('recent', null);
-      event.returnValue = data;
-    });
+  store.set('recentFiles', recent);
 
-    ipcMain.on('SaveRecentAndClose', (event, recent) => {
-      for (let i = 0; i < recent.length; i++) {
-        if (!recent[i].title) {
-          recent[i].title = path.basename(recent[i].path)
-        }
+  event.returnValue = true;
+});
+
+ipcMain.on('Init:Project:Open:FromFile', (event, filePath) => {
+  if (path.extname(filePath) !== '.lumly') {
+    event.sender.webContents.send('Init:Project:Opened:FromFile:Error:Ext');
+    return;
+  }
+
+  fs.readFile(filePath, 'utf8', (err, contents) => {
+    if (err) {
+      event.sender.webContents.send('Init:Project:Opened:FromFile:Error');
+      return;
+    }
+
+    event.sender.webContents.send('Init:Project:Opened:FromFile', {
+      file: contents,
+      path: filePath
+    });
+  });
+});
+
+export function openNewProject(event) {
+  const dialogProps: any = {
+    filters: {
+      name: 'Lumly project',
+      extensions: ['lumly']
+    },
+    properties: ['openFile']
+  };
+
+  dialog.showOpenDialog(dialogProps, (filePaths) => {
+    if (!filePaths) {
+      return;
+    }
+
+    const filePath = filePaths[0];
+
+    if (path.extname(filePath) !== '.lumly') {
+      event.sender.webContents.send('Project:Opened:Error:Extenstion');
+      return;
+    }
+
+    fs.readFile(filePath, 'utf8', (err, contents) => {
+      if (err) {
+        event.sender.webContents.send('Project:Opened:Error');
+        return;
       }
 
-      this.store.set('recent', recent);
-
-      event.returnValue = true;
+      event.sender.webContents.send('Project:New:Opened', {
+        file: contents,
+        path: filePath
+      });
     });
-  }
-
-  private registerUtilsEvents() {
-    ipcMain.on('Utils:Get:Platform', (event) => {
-      event.returnValue = process.platform;
-    });
-  }
+  });
 
 }

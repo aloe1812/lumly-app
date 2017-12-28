@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
 import { ipcRenderer } from 'electron';
 import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import * as forEach from 'lodash/forEach';
 import * as findIndex from 'lodash/findIndex';
@@ -13,20 +14,32 @@ import * as has from 'lodash/has';
 import * as isArray from 'lodash/isArray';
 import * as isString from 'lodash/isString';
 
+const ERRORS = {
+  FILE_EXTENSION: `Error: File extension is incorrect. Must be 'lumly'`,
+  FIlE_NOT_FOUND: `Error: Project file cannot be found`,
+  FILE_INVALID: 'Provided file is incorrect or damaged'
+}
+
 @Injectable()
 export class ProjectService {
 
   public projects = [];
   public activeProject;
-  public recent;
+  public recentProjects;
 
   private projectOpenedSub = new Subject();
   public projectOpened = this.projectOpenedSub.asObservable();
 
+  private onProjectOpenSub = new BehaviorSubject(<any>{pending: true});
+  public onProjectOpen = this.onProjectOpenSub.asObservable();
+
   constructor(
     private store: StoreService
   ) {
-    this.subscribeToElectronEvents();
+    this.subscribeOpenProjectEvents();
+    this.subscribeSaveProjectEvents();
+    this.subscribeToInitFromFileEvents();
+    this.subscribeToNewProjectEvents();
   }
 
   parseProjectFile(file) {
@@ -75,6 +88,12 @@ export class ProjectService {
     this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
 
     this.store.data('Project:Active').set(project);
+  }
+
+  onProjectCreated() {
+    this.onProjectOpenSub.next({
+      created: true
+    });
   }
 
   prepareProject(project, isNew = false) {
@@ -243,7 +262,7 @@ export class ProjectService {
     reverse(currentProjects);
 
     // соединяем с текущим списком недавних
-    let recentToSave = unionWith(currentProjects, this.recent, (val1, val2) => {
+    let recentToSave = unionWith(currentProjects, this.recentProjects, (val1, val2) => {
       return val1.path === val2.path;
     });
 
@@ -255,8 +274,27 @@ export class ProjectService {
     return recentToSave;
   }
 
-  private subscribeToElectronEvents() {
+  openEmpty() {
+    this.onProjectOpenSub.next({
+      open: false
+    });
+  }
 
+  openProjectFromFile(path) {
+    ipcRenderer.send('Init:Project:Open:FromFile', path);
+  }
+
+  openProjectFromData(projectData) {
+    this.storeProject(projectData);
+    this.setActive(projectData);
+
+    this.onProjectOpenSub.next({
+      open: true,
+      success: true
+    });
+  }
+
+  private subscribeOpenProjectEvents() {
     // Событие после того как проект был открыт
     ipcRenderer.on('Project:Opened', (event, data) => {
       try {
@@ -268,28 +306,49 @@ export class ProjectService {
         this.storeProject(project);
         this.setActive(project);
 
-        this.projectOpenedSub.next();
+        this.onProjectOpenSub.next({
+          open: true,
+          success: true
+        });
       } catch (e) {
-        alert('Provided file is incorrect or damaged');
+        this.onProjectOpenSub.next({
+          open: true,
+          success: false,
+          error: ERRORS.FILE_INVALID
+        });
       }
     });
 
     // Ошибка при открытии файла
     ipcRenderer.on('Project:Opened:Error', () => {
-      alert(`Error: Project file cannot be found`);
+      this.onProjectOpenSub.next({
+        open: true,
+        success: false,
+        error: ERRORS.FIlE_NOT_FOUND
+      });
     });
 
     // Ошибка если не смог открытся недавний файл (это скорее всего из-за того что он удален)
     ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
-      remove(this.recent, project);
-      alert(`Error: Project file cannot be found`);
+      remove(this.recentProjects, project);
+      this.onProjectOpenSub.next({
+        open: true,
+        success: false,
+        error: ERRORS.FIlE_NOT_FOUND
+      });
     });
 
     // Ошибка после попытки открытия проекта: неверное расширение файла
     ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
-      alert(`Error: File extension is incorrect. Must be 'lumly'`);
+      this.onProjectOpenSub.next({
+        open: true,
+        success: false,
+        error: ERRORS.FILE_EXTENSION
+      });
     });
+  }
 
+  private subscribeSaveProjectEvents() {
     // Событие после того как проект был сохранен
     ipcRenderer.on('Project:Saved', (event, path) => {
       // if path was created (i.e. locally created project was saved)
@@ -312,6 +371,64 @@ export class ProjectService {
       ipcRenderer.send('Project:SaveAs', {
         file: data.file,
         fileName: data.fileName || data.file.project.title
+      });
+    });
+  }
+
+  private subscribeToNewProjectEvents() {
+    ipcRenderer.on('Project:New:Opened', (event, data) => {
+      try {
+        const project = this.parseProjectFile(data.file)
+        project.project.path = data.path;
+        this.prepareProject(project);
+
+        ipcRenderer.send('Open:New:Project:FromData', project);
+      } catch (e) {
+        alert(ERRORS.FILE_INVALID);
+      }
+    })
+  }
+
+  private subscribeToInitFromFileEvents() {
+    ipcRenderer.on('Init:Project:Opened:FromFile', (event, data) => {
+      try {
+        const project = this.parseProjectFile(data.file)
+
+        project.project.path = data.path;
+
+        this.prepareProject(project);
+        this.storeProject(project);
+        this.setActive(project);
+
+        this.onProjectOpenSub.next({
+          open: true,
+          success: true
+        });
+      } catch (e) {
+        this.onProjectOpenSub.next({
+          open: true,
+          success: false,
+          error: ERRORS.FILE_INVALID,
+          initial: true
+        });
+      }
+    });
+
+    ipcRenderer.on('Init:Project:Opened:FromFile:Error:Ext', () => {
+      this.onProjectOpenSub.next({
+        open: true,
+        success: false,
+        error: ERRORS.FILE_EXTENSION,
+        initial: true
+      });
+    });
+
+    ipcRenderer.on('Init:Project:Opened:FromFile:Error', () => {
+      this.onProjectOpenSub.next({
+        open: true,
+        success: false,
+        error: ERRORS.FIlE_NOT_FOUND,
+        initial: true
       });
     });
   }

@@ -1,8 +1,60 @@
 import { app, Menu, shell, MenuItem } from 'electron';
+import { openNewProject } from './events';
 
-let isMenuCreated = false;
+/***********************************************
+* ============ Верхнее меню ============= *
+***********************************************/
+let isTopMenuCreated = false;
 
-const template: any = [
+const topMenuTemplate: any = [
+  {
+    label: 'File',
+    submenu: [
+      {
+        label: 'New Project'
+      },
+      {
+        label: 'New File'
+      },
+      {
+        label: 'New Folder'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Open',
+        click (item, focusedWindow) {
+          if (focusedWindow) {
+            openNewProject({
+              sender: focusedWindow
+            });
+          }
+        }
+      },
+      {
+        label: 'Open Recent'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Close'
+      },
+      {
+        label: 'Save'
+      },
+      {
+        label: 'Save As'
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: process.platform === 'darwin' ? 'Show In Finder' : 'Show In Explorer'
+      }
+    ]
+  },
   {
     label: 'Edit',
     submenu: [
@@ -101,7 +153,7 @@ if (process.platform === 'darwin') {
 
   const name = app.getName();
 
-  template.unshift({
+  topMenuTemplate.unshift({
     label: name,
     submenu: [
       {
@@ -128,7 +180,7 @@ if (process.platform === 'darwin') {
     ]
   })
   // Window menu.
-  template[3].submenu = [
+  topMenuTemplate[4].submenu = [
     {
       label: 'Close',
       accelerator: 'CmdOrCtrl+W',
@@ -153,12 +205,40 @@ if (process.platform === 'darwin') {
   ]
 }
 
-export function setMenu() {
-  if (isMenuCreated) {
+export function setTopMenu() {
+  if (isTopMenuCreated) {
     return;
   }
 
-  const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu);
-  isMenuCreated = true;
+  const topMenu = Menu.buildFromTemplate(topMenuTemplate);
+  Menu.setApplicationMenu(topMenu);
+  isTopMenuCreated = true;
 }
+
+/***********************************************
+* ============  Контекстные меню ============= *
+***********************************************/
+
+// Общеее контекстное меню
+export const contextMenu = new Menu();
+
+contextMenu.append(new MenuItem({ role: 'cut' }));
+contextMenu.append(new MenuItem({ role: 'copy' }));
+contextMenu.append(new MenuItem({ role: 'paste' }));
+
+// контекстное меню файла
+export const fileContextMenu = new Menu();
+
+fileContextMenu.append(new MenuItem({
+  label: 'Rename',
+  click: function(menuItem, win) {
+    win.webContents.send('File:Context-Menu:Clicked', 'rename');
+  }
+}));
+
+fileContextMenu.append(new MenuItem({
+  label: 'Delete',
+  click: function(menuItem, win) {
+    win.webContents.send('File:Context-Menu:Clicked', 'delete');
+  }
+}));
