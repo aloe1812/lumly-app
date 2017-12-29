@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
-import { ElectronService } from '../../core/electron.service';
 import { ResizeService } from 'app/core/resize.service';
 import { GenerationService } from 'app/core/generation.service';
+import { ipcRenderer } from 'electron';
 
 import * as CodeMirror from 'CodeMirror';
+import 'CodeMirror/addon/scroll/simplescrollbars';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import * as has from 'lodash/has';
@@ -33,7 +34,6 @@ export class EditorComponent implements OnInit {
   constructor(
     private store: StoreService,
     private projectService: ProjectService,
-    private electronService: ElectronService,
     private resizeService: ResizeService,
     private generationService: GenerationService
   ) { }
@@ -63,6 +63,7 @@ export class EditorComponent implements OnInit {
     });
 
     this.generationService.setEditor(this.editor);
+    this.resizeService.setEditor(this.editor);
 
     this.editor.on('change', (codemirror) => {
       this.codeTerms.next(codemirror.getValue());
@@ -117,7 +118,7 @@ export class EditorComponent implements OnInit {
   }
 
   private subscribeToProjectSaved() {
-    this.electronService.ipcRenderer.on('Project:Saved', () => {
+    ipcRenderer.on('project-saved', () => {
       this.lastFileChangedStatus = false;
     });
   }

@@ -1,25 +1,34 @@
 import { Injectable } from '@angular/core';
 import { ProjectService } from 'app/core/project.service';
-import { ElectronService } from 'app/core/electron.service';
+import { ipcRenderer, remote } from 'electron';
+import * as forEach from 'lodash/forEach';
 
 @Injectable()
 export class InitializationService {
 
+  private currentWindow = remote.getCurrentWindow();
+
   constructor(
-    private projectService: ProjectService,
-    private electronService: ElectronService
+    private projectService: ProjectService
   ) { }
 
   // Перед загрузкой приложения берем загружаем данные о недавних файлах
   initApp() {
     return new Promise(resolve => {
-      this.electronService.ipcRenderer.send('Store:Get:Recent');
+      const windowData = (<any>this.currentWindow).customWindowData;
 
-      this.electronService.ipcRenderer.on('Store:Got:Recent', (ev, data) => {
-        this.projectService.recent = data ? data : [];
-        this.electronService.ipcRenderer.removeAllListeners('Store:Got:Recent');
-        resolve();
-      });
+      document.body.classList.add(windowData.platform);
+      this.projectService.recentProjects = windowData.recentFiles;
+
+      if (windowData.path) {
+        this.projectService.openProjectFromPath(windowData.path, 'file');
+      } else if (windowData.projectData) {
+        this.projectService.openProjectFromData(JSON.parse(windowData.projectData));
+      } else {
+        this.projectService.openEmpty();
+      }
+
+      resolve();
     });
   }
 

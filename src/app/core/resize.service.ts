@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
+import { ipcRenderer } from 'electron';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { ElectronService } from 'app/core/electron.service';
 import * as clone from 'lodash/clone';
 
 @Injectable()
@@ -56,6 +56,8 @@ export class ResizeService {
   onSidebarToggle = this.onSidebarToggleSub.asObservable();
 
   private containers;
+  private uml;
+  private editor;
 
   private defaultSizes = {
     sidebar: 250,
@@ -78,9 +80,7 @@ export class ResizeService {
     dragging: false
   };
 
-  constructor(
-    private electronService: ElectronService
-  ) {
+  constructor() {
     this.subscribeToElectronEvents();
   }
 
@@ -95,6 +95,14 @@ export class ResizeService {
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
 
     this.optimizedResize.add(this.onWindowResize.bind(this));
+  }
+
+  setUml(uml) {
+    this.uml = uml;
+  }
+
+  setEditor(editor) {
+    this.editor = editor;
   }
 
   showSidebar() {
@@ -152,6 +160,9 @@ export class ResizeService {
 
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
+
+        this.editor.refresh();
+        this.uml.diagram.update();
       };
 
       if (window.requestAnimationFrame) {
@@ -228,6 +239,8 @@ export class ResizeService {
 
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
+
+    this.uml.diagram.update();
   }
 
   //  Метод который пересчитывает ширину редактора и области диаграмм
@@ -236,6 +249,9 @@ export class ResizeService {
 
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
+
+    this.editor.refresh();
+    this.uml.diagram.update();
   }
 
   private calculateNewWorkspaceValues() {
@@ -262,7 +278,7 @@ export class ResizeService {
   }
 
   private subscribeToElectronEvents() {
-    this.electronService.ipcRenderer.on('Restore:Default-Layout', () => {
+    ipcRenderer.on('restore-default-layout', () => {
       if (!this.containers) {
         return;
       }

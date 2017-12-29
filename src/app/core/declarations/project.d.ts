@@ -1,15 +1,38 @@
-export class Project {
+export class ProjectPristine {
   project: {
     title: string;
   }
-  contents: {
+  content: {
+    files: FilePristine[]
+  }
+}
+
+export class FilePristine {
+  title: string;
+  type: string;
+  content: string;
+  files: FilePristine[]
+}
+
+export class Project extends ProjectPristine {
+  project: {
+    title: string;
+    path?: string;
+    changes?: any;
+    guidCounter?: number;
+    hasChanges?: boolean;
+  }
+  content: {
     files: File[]
   }
 }
 
-export class File {
-  title: string;
-  type: string;
-  content: string;
-  files: File[]
+export class File extends FilePristine {
+  originalContent?: string;
+  guid?: number;
+  parentGuid?: number;
+  isToggled?: boolean;
+  isSelected?: boolean;
+  isTitleChanged?: boolean;
+  isNew?: boolean;
 }

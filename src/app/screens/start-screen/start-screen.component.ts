@@ -19,11 +19,7 @@ export class StartScreenComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.projectService.projectOpened.first().subscribe(() => {
-      this.router.navigateByUrl('/main');
-    });
-
-    this.recent = this.projectService.recent;
+    this.recent = this.projectService.recentProjects;
   }
 
   openProject() {
@@ -31,7 +27,7 @@ export class StartScreenComponent implements OnInit {
   }
 
   openRecent(project) {
-    this.projectService.openRecentProject(project);
+    this.projectService.openProjectFromPath(project.path, 'window-recent');
   }
 
   addProject() {
@@ -48,11 +44,7 @@ export class StartScreenComponent implements OnInit {
       }
     };
 
-    this.projectService.prepareProject(project, true);
-    this.projectService.storeProject(project);
-    this.projectService.setActive(project);
-
-    this.router.navigateByUrl('/main');
+    this.projectService.activateProject(project, true);
   }
 
   onKeydown(ev) {

@@ -5,8 +5,6 @@ import { SvgIconModule } from 'app/svg-icon/svg-icon.module';
 
 import { SidenavComponent } from './sidenav/sidenav.component';
 import { AddFolderComponent } from './add-folder/add-folder.component';
-import { AddProjectComponent } from './add-project/add-project.component';
-import { ProjectsListComponent } from './projects-list/projects-list.component';
 
 @NgModule({
   imports: [
@@ -17,15 +15,11 @@ import { ProjectsListComponent } from './projects-list/projects-list.component';
   ],
   declarations: [
     SidenavComponent,
-    AddFolderComponent,
-    AddProjectComponent,
-    ProjectsListComponent
+    AddFolderComponent
   ],
   exports: [
     SidenavComponent,
-    AddFolderComponent,
-    AddProjectComponent,
-    ProjectsListComponent
+    AddFolderComponent
   ]
 })
 export class SidenavModule { }

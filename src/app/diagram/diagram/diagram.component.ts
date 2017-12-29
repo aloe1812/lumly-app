@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import * as UML from '@dudes/lumly.uml.viewer'
 import { StoreService } from 'app/core/store.service';
+import { ResizeService } from 'app/core/resize.service';
 
 @Component({
   selector: 'app-diagram',
@@ -12,11 +13,17 @@ export class DiagramComponent implements OnInit {
   uml;
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private resizeService: ResizeService
   ) { }
 
   ngOnInit() {
-    this.uml = new UML('diagram');
+    this.uml = new UML('diagram', () => {
+      alert('Error on building diagram');
+    });
+
+    this.resizeService.setUml(this.uml);
+
     this.store.data('JSON-UML').get().subscribe(
       (json) => {
         if (json) {
@@ -25,7 +32,7 @@ export class DiagramComponent implements OnInit {
           this.uml.diagram.clear();
         }
       }
-    )
+    );
   }
 
 }

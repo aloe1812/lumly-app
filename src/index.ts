@@ -1,18 +1,15 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
-import { AppEvents } from './electron/events';
-import { setMenu } from './electron/menu';
-import * as Store from 'electron-store';
+import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
+import { recents } from './electron/store';
+import { getWindowBounds } from './electron/utils';
+import * as log from 'electron-log';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as _ from 'lodash';
 
-const DEFAULT_SIZES = {
-  width: 1200,
-  height: 700,
-  minWidth: 500,
-  minHeight: 300
-};
+log.transports.file.level = 'info'; // tmp
 
-const store = new Store({
-  encryptionKey: 'Qpv54qjyyoZ6Ii3QZ3I6'
-});
+let openedFromPath;
 
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
@@ -23,39 +20,22 @@ if (serve) {
 
 // Сохраняем ссылку на глобальный объект окна, в противном случае окно будет закрыто
 // автоматически, когда сборщик мусора удалит объект
-let mainWindow;
-const appEvents = new AppEvents();
+const windows = [];
 
-// Общеее контекстное меню
-const contextMenu = new Menu();
-
-contextMenu.append(new MenuItem({ role: 'cut' }));
-contextMenu.append(new MenuItem({ role: 'copy' }));
-contextMenu.append(new MenuItem({ role: 'paste' }));
-
-// контекстное меню файла
-const fileContextMenu = new Menu();
-
-fileContextMenu.append(new MenuItem({
-  label: 'Rename',
-  click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'rename');
-  }
-}));
-fileContextMenu.append(new MenuItem({
-  label: 'Delete',
-  click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'delete');
-  }
-}));
+// Различного рода перемененные
+const dataForWindow = {
+  platform: process.platform,
+  recentFiles: []
+}
 
 // Функция для создания окна приложения
-function createWindow() {
-  // Create the browser window.
+function createWindow(data?) {
 
-  const bounds = getMainWindowBounds();
+  const bounds = getWindowBounds();
 
-  mainWindow = new BrowserWindow({
+  dataForWindow.recentFiles = recents.get();
+
+  let win = new BrowserWindow({
     title: 'Lumly',
     backgroundColor: '#111111',
     width: bounds.width,
@@ -69,36 +49,57 @@ function createWindow() {
     }
   });
 
-  appEvents.setDependencies({
-    window: mainWindow,
-    store: store
-  });
+  windows.push(win);
+
+  (<any>win).customWindowData = Object.assign({}, dataForWindow, data);
 
   // and load the index.html of the app.
-  mainWindow.loadURL(`file://${__dirname}/index.html`);
+  win.loadURL(`file://${__dirname}/index.html`);
 
   // Open the DevTools
   if (serve) {
-    mainWindow.webContents.openDevTools();
+    win.webContents.openDevTools();
   }
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null;
-  });
+  // Если закрыли окно, очишаем его и удаляем из массива
+  win.on('closed', function () {
+    const winIndex = windows.indexOf(win);
 
-  setMenu();
+    if (winIndex !== -1) {
+      windows.splice(winIndex, 1);
+    }
+
+    win = null;
+  });
 }
+
+// Как только приложение закончило загружаться, подписываемся на открыть событие открыть файл
+app.on('will-finish-launching', () => {
+  app.on('open-file', (event, filePath) => {
+    event.preventDefault();
+
+    if (windows.length) {
+      if (!showWindowIfPathAlreadyOpen(filePath)) {
+        createWindow({path: filePath});
+      }
+    } else {
+      openedFromPath = filePath;
+    }
+  });
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  if (openedFromPath) {
+    createWindow({path: openedFromPath});
+  } else {
+    createWindow();
+  }
+});
 
-// Quit when all windows are closed.
+// Закрыть приложение, если закрыли все окна
 app.on('window-all-closed', function () {
   app.quit();
 });
@@ -106,12 +107,17 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
+  if (!windows.length) {
     createWindow();
   }
 });
 
-// Показывает контекстное меню
+// Сохраняем список недавних в файл
+app.on('quit', () => {
+  recents.saveToStore();
+});
+
+// Показываем контекстное меню
 app.on('browser-window-created', function (event, win) {
   win.webContents.on('context-menu', function (e, params) {
     contextMenu.popup(win, {
@@ -134,22 +140,254 @@ ipcMain.on('File:Context-Menu:Open', function (event, params) {
   });
 });
 
-// Helpers
-function getMainWindowBounds() {
-  const displayWorkArea = screen.getPrimaryDisplay().workArea;
+/***********************************************
+* ============ События приложения ============ *
+***********************************************/
+topMenuEvents.on('open-project', (data) => {
+  let window;
 
-  const width = DEFAULT_SIZES.width > displayWorkArea.width ? displayWorkArea.width : DEFAULT_SIZES.width;
-  const height = DEFAULT_SIZES.height > displayWorkArea.height ? displayWorkArea.height : DEFAULT_SIZES.height;
+  if (data.window) {
+    window = data.window;
+  } else {
+    window = _.find(windows, win => {
+      return !win.isDestroyed();
+    });
+  }
 
-  const x = displayWorkArea.x + ((displayWorkArea.width - width) / 2);
-  const y = displayWorkArea.y + ((displayWorkArea.height - height) / 2);
+  if (data.path) {
+    openProjectByPath(window, data.path, data.origin);
+  } else {
+    openProjectFromDialog(window, data.origin);
+  }
+});
 
-  return {
-    width,
-    height,
-    x,
-    y,
-    minWidth: DEFAULT_SIZES.minWidth,
-    minHeight: DEFAULT_SIZES.minHeight
+topMenuEvents.on('new-project', () => {
+  createWindow();
+});
+
+// указываем что у окна есть активный проект (либо новый, либо путь)
+ipcMain.on('set-window-project-active', (event, data) => {
+  const window = BrowserWindow.fromId(data.windowId);
+
+  if (data.projectPath) {
+    recents.add(data.projectPath);
+    delete (<any>window).customWindowData.isProjectNew;
+    (<any>window).customWindowData.projectPath = data.projectPath;
+  } else {
+    (<any>window).customWindowData.isProjectNew = true;
+  }
+});
+
+ipcMain.on('open-project-file-dialog', (event, data) => {
+  openProjectFromDialog(event.sender, data.origin);
+});
+
+ipcMain.on('open-project-file', (ev, data) => {
+  openProjectByPath(ev.sender, data.path, data.origin);
+});
+
+function openProjectFromDialog(sender, origin) {
+  const dialogProps: any = {
+    filters: {
+      name: 'Lumly project',
+      extensions: ['lumly']
+    },
+    properties: ['openFile']
   };
+
+  dialog.showOpenDialog(dialogProps, (filePaths) => {
+    if (!filePaths) {
+      return;
+    }
+
+    openProjectByPath(sender, filePaths[0], origin);
+  });
 }
+
+/*
+  sender - окно куда отправлять данные и ошибки (не факт что от этого окна изначально пришел запрос)
+  origin - из какого блока пришел запрос на отркытие файла. может быть:
+    * menu - из верхнего меню
+    * file - закинули файл или открыли файл
+    * window - из открытого уже окна
+*/
+function openProjectByPath(sender, filePath, origin) {
+  // не валидное расширение файла, отправляем ошибку
+  if (path.extname(filePath) !== '.lumly') {
+    sender.webContents.send('open-project-file:error', {type: 'ext', origin});
+    return;
+  }
+
+  // проверяем, есть ли уже окно с таким путем
+  // не проверяем если открыто через файл, так как в этом случае, мы уже это проверили в событии 'open-file' выше
+  if (origin !== 'file' && showWindowIfPathAlreadyOpen(filePath)) {
+    return;
+  }
+
+  fs.readFile(filePath, 'utf8', (err, contents) => {
+    if (err) {
+      if (origin === 'window-recent' || origin === 'menu-recent') {
+        recents.remove(filePath);
+        sender.webContents.send('open-project-file:error', {type: 'general', origin, recentFiles: recents.get()});
+      } else {
+        sender.webContents.send('open-project-file:error', {type: 'general', origin});
+      }
+
+      return;
+    }
+
+    const project = parseProjectFile(contents);
+
+    if (project) { // проект валидный
+      project.project.path = filePath;
+
+      // если открываем через меню и в текущем окне уже есть проект
+      if ( (origin === 'menu' || origin === 'menu-recent') &&
+          sender.customWindowData &&
+          (sender.customWindowData.projectPath || sender.customWindowData.isProjectNew)
+        ) {
+        createWindow({projectData: JSON.stringify(project)});
+      } else {
+        sender.webContents.send('project-file-opened', {
+          project,
+          origin
+        });
+      }
+    } else { // проект не валидный
+      sender.webContents.send('open-project-file:error', {
+        type: 'invalid',
+        origin
+      });
+    }
+  });
+}
+
+function parseProjectFile(fileContents) {
+
+  try {
+    const project = JSON.parse(fileContents);
+
+    if (!isProjectFileValid(project)) {
+      throw Error;
+    }
+
+    return project;
+  } catch (e) {
+    return null;
+  }
+
+  function isProjectFileValid(project) {
+    if (!( _.has(project, 'project') &&
+           _.has(project, 'content') &&
+           _.has(project, 'project.title') &&
+           _.has(project, 'content.files')
+    )) {
+      return false;
+    }
+
+    if (!_.isString(project.project.title)) {
+      return false;
+    }
+
+    if (!_.isArray(project.content.files)) {
+      return false;
+    }
+
+    return true;
+  }
+
+}
+
+function showWindowIfPathAlreadyOpen(filePath): boolean {
+
+  if (windows.length) {
+    let isWindowFound = false;
+
+    _.forEach(windows, window => {
+      if (
+        (<any>window).customWindowData &&
+        (<any>window).customWindowData.projectPath &&
+        (<any>window).customWindowData.projectPath === filePath
+      ) {
+        window.show();
+        isWindowFound = true;
+        return false;
+      }
+    });
+
+    return isWindowFound;
+  } else {
+    return false;
+  }
+}
+
+
+/*********** Сохранение проекта ***************/
+
+// Сохраняем проект
+ipcMain.on('project-save', (event, data) => {
+
+  // проверяем что путь файла существует
+  fs.stat(data.path, (errorExist) => {
+
+    if (errorExist) {
+      event.sender.webContents.send('project-save:error', {
+        file: data.file,
+        path: data.path,
+        fileName: path.basename(data.path, '.lumly'),
+        type: 'save:not-exists'
+      });
+      return;
+    }
+
+    // путь существует => сохраняем файл
+    fs.writeFile(data.path, data.file, (errorWrite) => {
+      if (errorWrite) {
+        event.sender.webContents.send('project-save:error', {
+          type: 'save:general'
+        });
+        return;
+      };
+
+      event.sender.webContents.send('project-saved');
+    });
+  });
+
+});
+
+// Сохраняем файл как
+ipcMain.on('project-save-as', (event, data) => {
+
+  let filleName = data.fileName || 'project';
+
+  if (data.path) {
+    filleName = path.basename(data.path, '.lumly');
+  }
+
+  dialog.showSaveDialog({
+    title: 'Save project',
+    defaultPath: `${app.getPath('downloads')}/${filleName}.lumly`,
+    filters: [
+      { name: '', extensions: ['lumly'] }
+    ]
+  }, (filePath) => {
+    if (filePath === undefined) {
+      return;
+    }
+
+    // save file
+    fs.writeFile(filePath, data.file, (error) => {
+      if (error) {
+        event.sender.webContents.send('project-save:error', {
+          type: 'save:general'
+        });
+        return;
+      };
+
+      event.sender.webContents.send('project-saved', {
+        path: filePath
+      });
+    });
+
+  });
+});

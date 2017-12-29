@@ -1,84 +1,36 @@
 import { Injectable } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
-import { ElectronService } from 'app/core/electron.service';
-import { Subject } from 'rxjs/Subject';
+import { ipcRenderer, remote } from 'electron';
+import { Project, ProjectPristine } from './declarations/project.d';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import * as forEach from 'lodash/forEach';
-import * as findIndex from 'lodash/findIndex';
-import * as unionWith from 'lodash/unionWith';
-import * as reverse from 'lodash/reverse';
-import * as remove from 'lodash/remove';
 import * as isEmpty from 'lodash/isEmpty';
-import * as has from 'lodash/has';
+import * as forEach from 'lodash/forEach';
 import * as isArray from 'lodash/isArray';
-import * as isString from 'lodash/isString';
+
+const FILE_ERRORS = {
+  ext: `Error: File extension is incorrect. Must be 'lumly'`,
+  invalid: 'Error: Provided file is incorrect or damaged',
+  general:  `Error: Project file cannot be found or opened`,
+  'save:not-exists': 'Error: Cannot find project path. Perhaps project file was relocated. Please, select where to save project file',
+  'save:general': 'There was an error on saving file'
+}
 
 @Injectable()
 export class ProjectService {
 
-  public projects = [];
-  public activeProject;
-  public recent;
+  project: Project;
+  recentProjects: any[];
 
-  private projectOpenedSub = new Subject();
-  public projectOpened = this.projectOpenedSub.asObservable();
+  onProjectOpen = new BehaviorSubject(<any>{pending: true});
 
   constructor(
-    private store: StoreService,
-    private electronService: ElectronService
+    private store: StoreService
   ) {
-    this.subscribeToElectronEvents();
+    this.subscribeToEvents();
   }
 
-  parseProjectFile(file) {
-    const project = JSON.parse(file);
-
-    if (!this.isProjectValid(project)) {
-      throw Error;
-    }
-
-    return project;
-  }
-
-  isProjectValid(project) {
-    if ( !(has(project, 'project') && has(project, 'content') && has(project, 'project.title') && has(project, 'content.files')) ) {
-      return false;
-    }
-
-    if (!isString(project.project.title)) {
-      return false;
-    }
-
-    if (!isArray(project.content.files)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  storeProject(project) {
-    if ( !has(project, 'project.path') ) {
-      this.projects.push(project);
-      return;
-    }
-
-    const storedIndex = findIndex(this.projects, storedProject => storedProject.project.path === project.project.path);
-
-    if (storedIndex === -1) {
-      this.projects.push(project);
-    } else {
-      this.projects[storedIndex] = project;
-    }
-  }
-
-  setActive(project) {
-    this.activeProject = project;
-    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
-
-    this.store.data('Project:Active').set(project);
-  }
-
-  prepareProject(project, isNew = false) {
+  prepareProject(project: Project, isNew = false, path?: string) {
     if (isNew) {
       project.project.changes = {
         'PROJECT_SELF': {
@@ -89,7 +41,13 @@ export class ProjectService {
       project.project.changes = {};
     }
 
+    if (path) {
+      project.project.path = path;
+    }
+
     project.project.guidCounter = 0;
+
+    project.project.hasChanges = !isEmpty(project.project.changes);
 
     setFilesGuid(project.content.files, 0);
 
@@ -106,13 +64,9 @@ export class ProjectService {
   }
 
   saveChange(changes) {
-    if ( !(changes instanceof Array) ) {
-      changes = [changes];
-    }
+    const changesStore = this.project.project.changes;
 
-    const changesStore = this.activeProject.project.changes;
-
-    forEach(changes, change => {
+    const processChange = (change) => {
       if ( !(change.guid in changesStore) ) {
         changesStore[change.guid] = change.changes;
       } else {
@@ -139,18 +93,88 @@ export class ProjectService {
       if (!hasChanges) {
         delete changesStore[change.guid];
       }
-    });
+    }
 
-    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
+    if (isArray(changes)) {
+      forEach(changes, processChange);
+    } else {
+      processChange(changes);
+    }
+
+    this.project.project.hasChanges = !isEmpty(this.project.project.changes);
   }
 
-  getProjectDataForSave() {
+  openProject() {
+    ipcRenderer.send('open-project-file-dialog', {origin: 'window'});
+  }
+
+  openProjectFromPath(path: string, origin?: string) {
+    ipcRenderer.send('open-project-file', {origin: origin || 'window', path});
+  }
+
+  openProjectFromData(projectData) {
+    this.activateProject(projectData);
+  }
+
+  openEmpty() {
+    this.onProjectOpen.next({tryOpen: false});
+  }
+
+  activateProject(project, isNew = false) {
+    this.prepareProject(project, isNew);
+
+    this.project = project;
+
+    const eventData: any = {
+      windowId: remote.getCurrentWindow().id
+    };
+
+    if (project.project.path) {
+      eventData.projectPath = project.project.path;
+    }
+
+    ipcRenderer.send('set-window-project-active', eventData);
+
+    this.onProjectOpen.next({
+      tryOpen: true,
+      success: true
+    });
+  }
+
+  saveProject(isSaveAs = false) {
+
+    if (!isSaveAs && !this.project.project.hasChanges) {
+      return;
+    }
+
+    const projectData = this.getProjectDataForSave();
+
+    if (isSaveAs || !this.project.project.path) {
+      const saveData: any = {
+        file: JSON.stringify(projectData),
+        fileName: projectData.project.title
+      };
+
+      if (this.project.project.path) {
+        saveData.path = this.project.project.path;
+      }
+
+      ipcRenderer.send('project-save-as', saveData);
+    } else {
+      ipcRenderer.send('project-save', {
+        path: this.project.project.path,
+        file: JSON.stringify(projectData)
+      });
+    }
+  }
+
+  private getProjectDataForSave(): ProjectPristine {
     return {
       project: {
-        title: this.activeProject.project.title
+        title: this.project.project.title
       },
       content: {
-        files: cloneFiles(this.activeProject.content.files)
+        files: cloneFiles(this.project.content.files)
       }
     };
 
@@ -178,12 +202,12 @@ export class ProjectService {
     }
   }
 
-  updateProjectAfterSave() {
-    this.activeProject.project.changes = {};
+  private updateProjectAfterSave() {
+    this.project.project.changes = {};
 
-    updateFiles(this.activeProject.content.files, 0);
+    updateFiles(this.project.content.files, 0);
 
-    this.activeProject.project.hasChanges = false;
+    this.project.project.hasChanges = false;
 
     function updateFiles(files, parentGuid) {
       forEach(files, (file) => {
@@ -204,119 +228,65 @@ export class ProjectService {
     }
   }
 
-  openProject() {
-    this.electronService.ipcRenderer.send('Open:Project');
-  }
+  private subscribeToEvents() {
+    ipcRenderer.on('project-file-opened', (event, evData) => {
+      this.activateProject(evData.project);
+    });
 
-  openRecentProject(project) {
-    this.electronService.ipcRenderer.send('Open:Project:Recent', project);
-  }
+    ipcRenderer.on('open-project-file:error', (ev, evData) => {
 
-  saveProject() {
-    const projectData = this.getProjectDataForSave();
-
-    if (this.activeProject.project.path) {
-      this.electronService.ipcRenderer.send('Project:Save', {
-        path: this.activeProject.project.path,
-        file: JSON.stringify(projectData)
-      });
-    } else {
-      this.electronService.ipcRenderer.send('Project:SaveAs', {
-        file: JSON.stringify(projectData),
-        fileName: projectData.project.title
-      });
-    }
-  }
-
-  private subscribeToElectronEvents() {
-
-    // Событие после того как проект был открыт
-    this.electronService.ipcRenderer.on('Project:Opened', (event, data) => {
-      try {
-        const project = this.parseProjectFile(data.file)
-
-        project.project.path = data.path;
-
-        this.prepareProject(project);
-        this.storeProject(project);
-        this.setActive(project);
-
-        this.projectOpenedSub.next();
-      } catch (e) {
-        alert('Provided file is incorrect or damaged');
+      if (evData.recentFiles) {
+        this.recentProjects.splice(0, this.recentProjects.length, ...evData.recentFiles);
       }
+
+      const errorData: any = {
+        tryOpen: true,
+        success: false,
+        error: FILE_ERRORS[evData.type]
+      }
+
+      if (evData.origin === 'file') {
+        errorData.fromFile = true
+      }
+
+      this.onProjectOpen.next(errorData);
     });
 
-    // Ошибка при открытии файла
-    this.electronService.ipcRenderer.on('Project:Opened:Error', () => {
-      alert(`Error: Project file cannot be found`);
-    });
-
-    // Ошибка если не смог открытся недавний файл (это скорее всего из-за того что он удален)
-    this.electronService.ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
-      remove(this.recent, project);
-      alert(`Error: Project file cannot be found`);
-    });
-
-    // Ошибка после попытки открытия проекта: неверное расширение файла
-    this.electronService.ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
-      alert(`Error: File extension is incorrect. Must be 'lumly'`);
-    });
-
-    // Событие после того как проект был сохранен
-    this.electronService.ipcRenderer.on('Project:Saved', (event, path) => {
-      // if path was created (i.e. locally created project was saved)
-      if (path) {
-        this.activeProject.project.path = path;
+    ipcRenderer.on('project-saved', (ev, evData) => {
+      if (evData && evData.path) { // был сохранен как
+        this.project.project.path = evData.path;
+        ipcRenderer.send('set-window-project-active', {
+          windowId: remote.getCurrentWindow().id,
+          projectPath: this.project.project.path
+        });
       }
 
       this.updateProjectAfterSave();
     });
 
-    // Ошибка при сохранении файла
-    this.electronService.ipcRenderer.on('Project:Saved:Error', () => {
-      alert('There was an error on saving file');
-    });
+    ipcRenderer.on('project-save:error', (ev, evData) => {
+      alert(FILE_ERRORS[evData.type]);
 
-    // Ошибка, если файл не существует в том месте, откуда был изначально открыт
-    this.electronService.ipcRenderer.on('Project:Saved:Error:Exist', (event, data) => {
-      alert('Error: Cannot find path. Perhaps project file was relocated. Please, select where to save project file.');
-
-      this.electronService.ipcRenderer.send('Project:SaveAs', {
-        file: data.file,
-        fileName: data.fileName || data.file.project.title
-      });
-    });
-
-    // Сохраняем данные о недавних проектах
-    this.electronService.ipcRenderer.on('App:Before-Quit', () => {
-
-      const currentProjects = [];
-
-      // берем те которые у нас сейчас открыты (и у которых есть файл)
-      forEach(this.projects, project => {
-        if (project.project.path) {
-          currentProjects.push({
-            path: project.project.path
-          })
-        }
-      });
-
-      // меняем порядок, чтобы последние были сверху
-      reverse(currentProjects);
-
-      // соединяем с текущим списком недавних
-      let recentToSave = unionWith(currentProjects, this.recent, (val1, val2) => {
-        return val1.path === val2.path;
-      });
-
-      // обрезаем список, если проектов больше 8
-      if (recentToSave.length > 8) {
-        recentToSave = recentToSave.slice(0, 8);
+      if (evData.type === 'save:not-exists') {
+        ipcRenderer.send('project-save-as', {
+          file: evData.file,
+          fileName: evData.fileName || evData.file.project.title
+        });
       }
+    });
 
-      // Отправляем на сохранение
-      this.electronService.ipcRenderer.send('Store:Save:Recent', recentToSave);
+    ipcRenderer.on('trigger-project-save', () => {
+      if (!this.project) {
+        return;
+      }
+      this.saveProject();
+    });
+
+    ipcRenderer.on('trigger-project-save-as', () => {
+      if (!this.project) {
+        return;
+      }
+      this.saveProject(true);
     });
   }
 
