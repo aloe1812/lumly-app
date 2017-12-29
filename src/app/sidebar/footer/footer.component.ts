@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { InjectionService } from '../../core/injection.service';
 import { AddMenuComponent } from '../../sidebar/add-menu/add-menu.component';
@@ -10,9 +10,7 @@ import { ResizeService } from 'app/core/resize.service';
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss']
 })
-export class FooterComponent implements OnInit {
-
-  project;
+export class FooterComponent {
 
   constructor(
     private store: StoreService,
@@ -21,39 +19,17 @@ export class FooterComponent implements OnInit {
     private resizeService: ResizeService
   ) { }
 
-  ngOnInit() {
-    this.store.data('Project:Active').get()
-      .subscribe(project => {
-        this.project = project;
-      });
-  }
-
   openAddMenu() {
-    let menuItems;
-
-    if (this.project) {
-      menuItems = [
-        {
-          title: 'File',
-          type: 'add-file'
-        },
-        {
-          title: 'Folder',
-          type: 'add-folder'
-        },
-        {
-          title: 'Project',
-          type: 'add-project'
-        }
-      ];
-    } else {
-      menuItems = [
-        {
-          title: 'Project',
-          type: 'add-project'
-        }
-      ];
-    }
+    const menuItems = [
+      {
+        title: 'File',
+        type: 'add-file'
+      },
+      {
+        title: 'Folder',
+        type: 'add-folder'
+      }
+    ];
 
     this.injector.appendComponent(AddMenuComponent, {
       items: menuItems
@@ -69,10 +45,6 @@ export class FooterComponent implements OnInit {
 
         if (evType === 'add-folder') {
           this.store.event('Folder:Add').emit();
-        }
-
-        if (evType === 'add-project') {
-          this.store.event('Project:Add').emit();
         }
       });
   }

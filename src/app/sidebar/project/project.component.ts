@@ -30,7 +30,7 @@ export class ProjectComponent implements OnInit {
   ngOnInit() {
     this.dragService.init(this);
 
-    this.subscribeToActiveProject();
+    this.initProject();
     this.subscribeToFileEvents();
   }
 
@@ -48,19 +48,11 @@ export class ProjectComponent implements OnInit {
     this.fileService.sortFiles(this.files);
   }
 
-  private subscribeToActiveProject() {
-    this.store.data('Project:Active').get()
-      .subscribe(project => {
-        this.playground.select();
-
-        if (project) {
-          this.project = project;
-          this.files = project.content.files;
-          this.sortFiles();
-        } else {
-          this.clearProject();
-        }
-      });
+  private initProject() {
+    this.playground.select();
+    this.project = this.projectService.project;
+    this.files = this.project.content.files;
+    this.sortFiles();
   }
 
   private subscribeToFileEvents() {
@@ -79,11 +71,6 @@ export class ProjectComponent implements OnInit {
         this.addFile();
       }
     )
-  }
-
-  private clearProject() {
-    this.project = null;
-    this.files = null;
   }
 
   private addFile() {

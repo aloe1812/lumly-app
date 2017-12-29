@@ -21,9 +21,9 @@ export class InitializationService {
       this.projectService.recentProjects = windowData.recentFiles;
 
       if (windowData.path) {
-        this.projectService.openProjectFromFile(windowData.path);
+        this.projectService.openProjectFromPath(windowData.path, 'file');
       } else if (windowData.projectData) {
-        this.projectService.openProjectFromData(windowData.projectData);
+        this.projectService.openProjectFromData(JSON.parse(windowData.projectData));
       } else {
         this.projectService.openEmpty();
       }

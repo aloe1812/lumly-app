@@ -6,9 +6,21 @@
     "output": "app-builds"
   },
   "win": {
-    "icon": "dist/icon"
+    "icon": "dist/icon",
+    "target": "portable"
   },
   "mac": {
-    "icon": "dist/icon"
+    "icon": "dist/icon",
+    "target": [
+      {
+        "target": "dir"
+      },
+      {
+        "target": "zip"
+      }
+    ]
+  },
+  "fileAssociations": {
+    "ext": "lumly"
   }
 }

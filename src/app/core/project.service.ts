@@ -1,102 +1,36 @@
 import { Injectable } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
-import { ipcRenderer } from 'electron';
-import { Subject } from 'rxjs/Subject';
+import { ipcRenderer, remote } from 'electron';
+import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import * as forEach from 'lodash/forEach';
-import * as findIndex from 'lodash/findIndex';
-import * as unionWith from 'lodash/unionWith';
-import * as reverse from 'lodash/reverse';
-import * as remove from 'lodash/remove';
 import * as isEmpty from 'lodash/isEmpty';
-import * as has from 'lodash/has';
+import * as forEach from 'lodash/forEach';
 import * as isArray from 'lodash/isArray';
-import * as isString from 'lodash/isString';
 
-const ERRORS = {
-  FILE_EXTENSION: `Error: File extension is incorrect. Must be 'lumly'`,
-  FIlE_NOT_FOUND: `Error: Project file cannot be found`,
-  FILE_INVALID: 'Provided file is incorrect or damaged'
+const FILE_ERRORS = {
+  ext: `Error: File extension is incorrect. Must be 'lumly'`,
+  invalid: 'Error: Provided file is incorrect or damaged',
+  general:  `Error: Project file cannot be found or opened`,
+  'save:not-exists': 'Error: Cannot find project path. Perhaps project file was relocated. Please, select where to save project file',
+  'save:general': 'There was an error on saving file'
 }
 
 @Injectable()
 export class ProjectService {
 
-  public projects = [];
-  public activeProject;
-  public recentProjects;
+  project: Project;
+  recentProjects: any[];
 
-  private projectOpenedSub = new Subject();
-  public projectOpened = this.projectOpenedSub.asObservable();
-
-  private onProjectOpenSub = new BehaviorSubject(<any>{pending: true});
-  public onProjectOpen = this.onProjectOpenSub.asObservable();
+  onProjectOpen = new BehaviorSubject(<any>{pending: true});
 
   constructor(
     private store: StoreService
   ) {
-    this.subscribeOpenProjectEvents();
-    this.subscribeSaveProjectEvents();
-    this.subscribeToInitFromFileEvents();
-    this.subscribeToNewProjectEvents();
+    this.subscribeToEvents();
   }
 
-  parseProjectFile(file) {
-    const project = JSON.parse(file);
-
-    if (!this.isProjectValid(project)) {
-      throw Error;
-    }
-
-    return project;
-  }
-
-  isProjectValid(project) {
-    if ( !(has(project, 'project') && has(project, 'content') && has(project, 'project.title') && has(project, 'content.files')) ) {
-      return false;
-    }
-
-    if (!isString(project.project.title)) {
-      return false;
-    }
-
-    if (!isArray(project.content.files)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  storeProject(project) {
-    if ( !has(project, 'project.path') ) {
-      this.projects.push(project);
-      return;
-    }
-
-    const storedIndex = findIndex(this.projects, storedProject => storedProject.project.path === project.project.path);
-
-    if (storedIndex === -1) {
-      this.projects.push(project);
-    } else {
-      this.projects[storedIndex] = project;
-    }
-  }
-
-  setActive(project) {
-    this.activeProject = project;
-    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
-
-    this.store.data('Project:Active').set(project);
-  }
-
-  onProjectCreated() {
-    this.onProjectOpenSub.next({
-      created: true
-    });
-  }
-
-  prepareProject(project, isNew = false) {
+  prepareProject(project: Project, isNew = false, path?: string) {
     if (isNew) {
       project.project.changes = {
         'PROJECT_SELF': {
@@ -107,7 +41,13 @@ export class ProjectService {
       project.project.changes = {};
     }
 
+    if (path) {
+      project.project.path = path;
+    }
+
     project.project.guidCounter = 0;
+
+    project.project.hasChanges = !isEmpty(project.project.changes);
 
     setFilesGuid(project.content.files, 0);
 
@@ -124,13 +64,9 @@ export class ProjectService {
   }
 
   saveChange(changes) {
-    if ( !(changes instanceof Array) ) {
-      changes = [changes];
-    }
+    const changesStore = this.project.project.changes;
 
-    const changesStore = this.activeProject.project.changes;
-
-    forEach(changes, change => {
+    const processChange = (change) => {
       if ( !(change.guid in changesStore) ) {
         changesStore[change.guid] = change.changes;
       } else {
@@ -157,18 +93,88 @@ export class ProjectService {
       if (!hasChanges) {
         delete changesStore[change.guid];
       }
-    });
+    }
 
-    this.activeProject.project.hasChanges = !isEmpty(this.activeProject.project.changes);
+    if (isArray(changes)) {
+      forEach(changes, processChange);
+    } else {
+      processChange(changes);
+    }
+
+    this.project.project.hasChanges = !isEmpty(this.project.project.changes);
   }
 
-  getProjectDataForSave() {
+  openProject() {
+    ipcRenderer.send('open-project-file-dialog', {origin: 'window'});
+  }
+
+  openProjectFromPath(path: string, origin?: string) {
+    ipcRenderer.send('open-project-file', {origin: origin || 'window', path});
+  }
+
+  openProjectFromData(projectData) {
+    this.activateProject(projectData);
+  }
+
+  openEmpty() {
+    this.onProjectOpen.next({tryOpen: false});
+  }
+
+  activateProject(project, isNew = false) {
+    this.prepareProject(project, isNew);
+
+    this.project = project;
+
+    const eventData: any = {
+      windowId: remote.getCurrentWindow().id
+    };
+
+    if (project.project.path) {
+      eventData.projectPath = project.project.path;
+    }
+
+    ipcRenderer.send('set-window-project-active', eventData);
+
+    this.onProjectOpen.next({
+      tryOpen: true,
+      success: true
+    });
+  }
+
+  saveProject(isSaveAs = false) {
+
+    if (!isSaveAs && !this.project.project.hasChanges) {
+      return;
+    }
+
+    const projectData = this.getProjectDataForSave();
+
+    if (isSaveAs || !this.project.project.path) {
+      const saveData: any = {
+        file: JSON.stringify(projectData),
+        fileName: projectData.project.title
+      };
+
+      if (this.project.project.path) {
+        saveData.path = this.project.project.path;
+      }
+
+      ipcRenderer.send('project-save-as', saveData);
+    } else {
+      ipcRenderer.send('project-save', {
+        path: this.project.project.path,
+        file: JSON.stringify(projectData)
+      });
+    }
+  }
+
+  private getProjectDataForSave(): ProjectPristine {
     return {
       project: {
-        title: this.activeProject.project.title
+        title: this.project.project.title
       },
       content: {
-        files: cloneFiles(this.activeProject.content.files)
+        files: cloneFiles(this.project.content.files)
       }
     };
 
@@ -196,12 +202,12 @@ export class ProjectService {
     }
   }
 
-  updateProjectAfterSave() {
-    this.activeProject.project.changes = {};
+  private updateProjectAfterSave() {
+    this.project.project.changes = {};
 
-    updateFiles(this.activeProject.content.files, 0);
+    updateFiles(this.project.content.files, 0);
 
-    this.activeProject.project.hasChanges = false;
+    this.project.project.hasChanges = false;
 
     function updateFiles(files, parentGuid) {
       forEach(files, (file) => {
@@ -222,214 +228,65 @@ export class ProjectService {
     }
   }
 
-  openProject() {
-    ipcRenderer.send('Open:Project');
-  }
+  private subscribeToEvents() {
+    ipcRenderer.on('project-file-opened', (event, evData) => {
+      this.activateProject(evData.project);
+    });
 
-  openRecentProject(project) {
-    ipcRenderer.send('Open:Project:Recent', project);
-  }
+    ipcRenderer.on('open-project-file:error', (ev, evData) => {
 
-  saveProject() {
-    const projectData = this.getProjectDataForSave();
-
-    if (this.activeProject.project.path) {
-      ipcRenderer.send('Project:Save', {
-        path: this.activeProject.project.path,
-        file: JSON.stringify(projectData)
-      });
-    } else {
-      ipcRenderer.send('Project:SaveAs', {
-        file: JSON.stringify(projectData),
-        fileName: projectData.project.title
-      });
-    }
-  }
-
-  getRecentProjects() {
-    const currentProjects = [];
-
-    // берем те которые у нас сейчас открыты (и у которых есть файл)
-    forEach(this.projects, project => {
-      if (project.project.path) {
-        currentProjects.push({
-          path: project.project.path
-        })
+      if (evData.recentFiles) {
+        this.recentProjects.splice(0, this.recentProjects.length, ...evData.recentFiles);
       }
-    });
 
-    // меняем порядок, чтобы последние были сверху
-    reverse(currentProjects);
-
-    // соединяем с текущим списком недавних
-    let recentToSave = unionWith(currentProjects, this.recentProjects, (val1, val2) => {
-      return val1.path === val2.path;
-    });
-
-    // обрезаем список, если проектов больше 8
-    if (recentToSave.length > 8) {
-      recentToSave = recentToSave.slice(0, 8);
-    }
-
-    return recentToSave;
-  }
-
-  openEmpty() {
-    this.onProjectOpenSub.next({
-      open: false
-    });
-  }
-
-  openProjectFromFile(path) {
-    ipcRenderer.send('Init:Project:Open:FromFile', path);
-  }
-
-  openProjectFromData(projectData) {
-    this.storeProject(projectData);
-    this.setActive(projectData);
-
-    this.onProjectOpenSub.next({
-      open: true,
-      success: true
-    });
-  }
-
-  private subscribeOpenProjectEvents() {
-    // Событие после того как проект был открыт
-    ipcRenderer.on('Project:Opened', (event, data) => {
-      try {
-        const project = this.parseProjectFile(data.file)
-
-        project.project.path = data.path;
-
-        this.prepareProject(project);
-        this.storeProject(project);
-        this.setActive(project);
-
-        this.onProjectOpenSub.next({
-          open: true,
-          success: true
-        });
-      } catch (e) {
-        this.onProjectOpenSub.next({
-          open: true,
-          success: false,
-          error: ERRORS.FILE_INVALID
-        });
+      const errorData: any = {
+        tryOpen: true,
+        success: false,
+        error: FILE_ERRORS[evData.type]
       }
+
+      if (evData.origin === 'file') {
+        errorData.fromFile = true
+      }
+
+      this.onProjectOpen.next(errorData);
     });
 
-    // Ошибка при открытии файла
-    ipcRenderer.on('Project:Opened:Error', () => {
-      this.onProjectOpenSub.next({
-        open: true,
-        success: false,
-        error: ERRORS.FIlE_NOT_FOUND
-      });
-    });
-
-    // Ошибка если не смог открытся недавний файл (это скорее всего из-за того что он удален)
-    ipcRenderer.on('Project:Recent:Opened:Error', (ev, project) => {
-      remove(this.recentProjects, project);
-      this.onProjectOpenSub.next({
-        open: true,
-        success: false,
-        error: ERRORS.FIlE_NOT_FOUND
-      });
-    });
-
-    // Ошибка после попытки открытия проекта: неверное расширение файла
-    ipcRenderer.on('Project:Opened:Error:Extenstion', () => {
-      this.onProjectOpenSub.next({
-        open: true,
-        success: false,
-        error: ERRORS.FILE_EXTENSION
-      });
-    });
-  }
-
-  private subscribeSaveProjectEvents() {
-    // Событие после того как проект был сохранен
-    ipcRenderer.on('Project:Saved', (event, path) => {
-      // if path was created (i.e. locally created project was saved)
-      if (path) {
-        this.activeProject.project.path = path;
+    ipcRenderer.on('project-saved', (ev, evData) => {
+      if (evData && evData.path) { // был сохранен как
+        this.project.project.path = evData.path;
+        ipcRenderer.send('set-window-project-active', {
+          windowId: remote.getCurrentWindow().id,
+          projectPath: this.project.project.path
+        });
       }
 
       this.updateProjectAfterSave();
     });
 
-    // Ошибка при сохранении файла
-    ipcRenderer.on('Project:Saved:Error', () => {
-      alert('There was an error on saving file');
-    });
+    ipcRenderer.on('project-save:error', (ev, evData) => {
+      alert(FILE_ERRORS[evData.type]);
 
-    // Ошибка, если файл не существует в том месте, откуда был изначально открыт
-    ipcRenderer.on('Project:Saved:Error:Exist', (event, data) => {
-      alert('Error: Cannot find path. Perhaps project file was relocated. Please, select where to save project file.');
-
-      ipcRenderer.send('Project:SaveAs', {
-        file: data.file,
-        fileName: data.fileName || data.file.project.title
-      });
-    });
-  }
-
-  private subscribeToNewProjectEvents() {
-    ipcRenderer.on('Project:New:Opened', (event, data) => {
-      try {
-        const project = this.parseProjectFile(data.file)
-        project.project.path = data.path;
-        this.prepareProject(project);
-
-        ipcRenderer.send('Open:New:Project:FromData', project);
-      } catch (e) {
-        alert(ERRORS.FILE_INVALID);
-      }
-    })
-  }
-
-  private subscribeToInitFromFileEvents() {
-    ipcRenderer.on('Init:Project:Opened:FromFile', (event, data) => {
-      try {
-        const project = this.parseProjectFile(data.file)
-
-        project.project.path = data.path;
-
-        this.prepareProject(project);
-        this.storeProject(project);
-        this.setActive(project);
-
-        this.onProjectOpenSub.next({
-          open: true,
-          success: true
-        });
-      } catch (e) {
-        this.onProjectOpenSub.next({
-          open: true,
-          success: false,
-          error: ERRORS.FILE_INVALID,
-          initial: true
+      if (evData.type === 'save:not-exists') {
+        ipcRenderer.send('project-save-as', {
+          file: evData.file,
+          fileName: evData.fileName || evData.file.project.title
         });
       }
     });
 
-    ipcRenderer.on('Init:Project:Opened:FromFile:Error:Ext', () => {
-      this.onProjectOpenSub.next({
-        open: true,
-        success: false,
-        error: ERRORS.FILE_EXTENSION,
-        initial: true
-      });
+    ipcRenderer.on('trigger-project-save', () => {
+      if (!this.project) {
+        return;
+      }
+      this.saveProject();
     });
 
-    ipcRenderer.on('Init:Project:Opened:FromFile:Error', () => {
-      this.onProjectOpenSub.next({
-        open: true,
-        success: false,
-        error: ERRORS.FIlE_NOT_FOUND,
-        initial: true
-      });
+    ipcRenderer.on('trigger-project-save-as', () => {
+      if (!this.project) {
+        return;
+      }
+      this.saveProject(true);
     });
   }
 

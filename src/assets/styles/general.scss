@@ -47,6 +47,10 @@ input, button {
   .editor .main {
     user-select: none;
   }
+  .diagram, .diagram canvas {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
 }
 
 canvas:focus {

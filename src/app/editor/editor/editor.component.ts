@@ -118,7 +118,7 @@ export class EditorComponent implements OnInit {
   }
 
   private subscribeToProjectSaved() {
-    ipcRenderer.on('Project:Saved', () => {
+    ipcRenderer.on('project-saved', () => {
       this.lastFileChangedStatus = false;
     });
   }

@@ -27,7 +27,7 @@ export class StartScreenComponent implements OnInit {
   }
 
   openRecent(project) {
-    this.projectService.openRecentProject(project);
+    this.projectService.openProjectFromPath(project.path, 'window-recent');
   }
 
   addProject() {
@@ -44,9 +44,7 @@ export class StartScreenComponent implements OnInit {
       }
     };
 
-    this.projectService.prepareProject(project, true);
-    this.projectService.storeProject(project);
-    this.projectService.setActive(project);
+    this.projectService.activateProject(project, true);
   }
 
   onKeydown(ev) {

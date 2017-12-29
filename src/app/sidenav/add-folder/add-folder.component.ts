@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, HostListener, ViewEncapsulation } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { SidenavComponent } from '../sidenav/sidenav.component';
-import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 
 @Component({
@@ -27,14 +26,12 @@ export class AddFolderComponent implements OnInit {
   }
 
   constructor(
-    private store: StoreService,
     private projectService: ProjectService
   ) { }
 
   ngOnInit() {
     this.sidenav.show();
-    this.store.data('Project:Active').get().first()
-      .subscribe(project => this.project = project);
+    this.project = this.projectService.project;
   }
 
   onKeydown(ev) {

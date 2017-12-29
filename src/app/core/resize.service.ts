@@ -284,7 +284,7 @@ export class ResizeService {
   }
 
   private subscribeToElectronEvents() {
-    ipcRenderer.on('Restore:Default-Layout', () => {
+    ipcRenderer.on('restore-default-layout', () => {
       if (!this.containers) {
         return;
       }

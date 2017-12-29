@@ -49,13 +49,13 @@ export class AppRoutingModule {
         return;
       }
 
-      if (data.open) {
+      if (data.tryOpen) {
 
         if (data.success) {
           this.router.navigateByUrl('/main');
         } else {
 
-          if (data.initial) {
+          if (data.fromFile) {
             this.router.navigateByUrl('/start');
             setTimeout(() => { alert(data.error); }, 100);
           } else {

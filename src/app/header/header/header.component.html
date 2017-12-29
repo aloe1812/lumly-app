@@ -1,7 +1,4 @@
 <div>
-  <button [class.has-changes]="project.project.hasChanges" (click)="openProjects()">{{ project.project.title }}</button>
+  <button [class.has-changes]="project.project.hasChanges">{{ project.project.title }}</button>
   <app-breadcrumbs></app-breadcrumbs>
-</div>
-<div>
-  <button [disabled]="!project.project.hasChanges" (click)="saveProject()">Save</button>
 </div>
