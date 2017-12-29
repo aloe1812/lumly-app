@@ -162,9 +162,7 @@ export class ResizeService {
         this.containers.diagram.style.width = diagramNewWidth + 'px';
 
         this.editor.refresh();
-        if (this.uml.diagram) {
-          this.uml.diagram.update();
-        }
+        this.uml.diagram.update();
       };
 
       if (window.requestAnimationFrame) {
@@ -242,9 +240,7 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
-    if (this.uml.diagram) {
-      this.uml.diagram.update();
-    }
+    this.uml.diagram.update();
   }
 
   //  Метод который пересчитывает ширину редактора и области диаграмм
@@ -255,9 +251,7 @@ export class ResizeService {
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
     this.editor.refresh();
-    if (this.uml.diagram) {
-      this.uml.diagram.update();
-    }
+    this.uml.diagram.update();
   }
 
   private calculateNewWorkspaceValues() {
