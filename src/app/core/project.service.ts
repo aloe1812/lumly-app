@@ -288,6 +288,30 @@ export class ProjectService {
       }
       this.saveProject(true);
     });
+
+    ipcRenderer.on('trigger-project-close', () => {
+      if (this.project) {
+        this.onProjectOpen.next(false);
+        ipcRenderer.send('set-window-project-active', {
+          windowId: remote.getCurrentWindow().id,
+          clearProject: true
+        });
+        this.project = null;
+      } else {
+        remote.getCurrentWindow().close();
+      }
+    });
+
+    ipcRenderer.on('trigger-add', (ev, type) => {
+      switch (type) {
+        case 'file':
+          this.store.event('File:Add').emit();
+          return;
+        case 'folder':
+          this.store.event('Folder:Add').emit();
+          return;
+      }
+    });
   }
 
 }

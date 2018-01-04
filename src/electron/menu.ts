@@ -1,6 +1,7 @@
 import { app, Menu, shell, MenuItem, ipcMain, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as EventEmitter from 'events';
+import * as _ from 'lodash';
 import { recents } from './store';
 
 export const topMenuEvents = new EventEmitter();
@@ -21,17 +22,23 @@ const topMenuTemplate: any = [
         }
       },
       {
-        label: 'New File'
+        label: 'New File',
+        click(item, focusedWindow) {
+          focusedWindow.webContents.send('trigger-add', 'file');
+        }
       },
       {
-        label: 'New Folder'
+        label: 'New Folder',
+        click(item, focusedWindow) {
+          focusedWindow.webContents.send('trigger-add', 'folder');
+        }
       },
       {
         type: 'separator'
       },
       {
         label: 'Open',
-        click (item, focusedWindow) {
+        click(item, focusedWindow) {
           topMenuEvents.emit(
             'open-project',
             {
@@ -49,7 +56,14 @@ const topMenuTemplate: any = [
         type: 'separator'
       },
       {
-        label: 'Close'
+        label: 'Close',
+        click: (item, focusedWindow) => {
+          if (BrowserWindow.getAllWindows().length > 1) {
+            focusedWindow.close();
+          } else {
+            focusedWindow.webContents.send('trigger-project-close');
+          }
+        }
       },
       {
         label: 'Save',
@@ -73,7 +87,15 @@ const topMenuTemplate: any = [
         type: 'separator'
       },
       {
-        label: process.platform === 'darwin' ? 'Show In Finder' : 'Show In Explorer'
+        label: process.platform === 'darwin' ? 'Show In Finder' : 'Show In Explorer',
+        click(item, focusedWindow) {
+          const isShown = shell.showItemInFolder(focusedWindow.customWindowData.projectPath);
+          if (!isShown) {
+            recents.remove(focusedWindow.customWindowData.projectPath);
+            focusedWindow.webContents.send('open-project-file:error', {type: 'general', origin: 'menu', recentFiles: recents.get()});
+            updateTopMenu(focusedWindow);
+          }
+        }
       }
     ]
   },
@@ -288,26 +310,29 @@ recents.onUpdate(() => {
 })
 
 function updateTopMenu(focusedWindow) {
-  const isProjectActive = () => {
-    return (<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew );
-  };
-
   const menuIndex = process.platform === 'darwin' ? 1 : 0;
 
-  if ( isProjectActive() ) {
-    topMenuTemplate[menuIndex].submenu[1].enabled = true;
-    topMenuTemplate[menuIndex].submenu[2].enabled = true;
-    topMenuTemplate[menuIndex].submenu[8].enabled = true;
-    topMenuTemplate[menuIndex].submenu[9].enabled = true;
-  } else {
-    topMenuTemplate[menuIndex].submenu[1].enabled = false;
-    topMenuTemplate[menuIndex].submenu[2].enabled = false;
-    topMenuTemplate[menuIndex].submenu[8].enabled = false;
-    topMenuTemplate[menuIndex].submenu[9].enabled = false;
+  const { isActive, hasPath } = getProjectStatus(focusedWindow);
+
+  _.forEach([1, 2, 8, 9, 10, 11], i => {
+    topMenuTemplate[menuIndex].submenu[i].visible = isActive;
+  });
+
+  if (isActive) {
+    _.forEach([10, 11], i => {
+      topMenuTemplate[menuIndex].submenu[i].visible = hasPath;
+    });
   }
 
   const topMenu = Menu.buildFromTemplate(topMenuTemplate);
   Menu.setApplicationMenu(topMenu);
+}
+
+function getProjectStatus(window: BrowserWindow) {
+  return {
+    isActive: !!( (<any>window).customWindowData && ( (<any>window).customWindowData.projectPath || (<any>window).customWindowData.isProjectNew ) ),
+    hasPath: !!( (<any>window).customWindowData && (<any>window).customWindowData.projectPath )
+  }
 }
 
 /***********************************************
@@ -327,13 +352,13 @@ export const fileContextMenu = new Menu();
 fileContextMenu.append(new MenuItem({
   label: 'Rename',
   click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'rename');
+    win.webContents.send('file-context-menu-selected', 'rename');
   }
 }));
 
 fileContextMenu.append(new MenuItem({
   label: 'Delete',
   click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'delete');
+    win.webContents.send('file-context-menu-selected', 'delete');
   }
 }));

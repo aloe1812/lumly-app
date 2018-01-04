@@ -1,16 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import * as UML from '@dudes/lumly.uml.viewer'
 import { StoreService } from 'app/core/store.service';
 import { ResizeService } from 'app/core/resize.service';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-diagram',
   templateUrl: './diagram.component.html',
   styleUrls: ['./diagram.component.scss']
 })
-export class DiagramComponent implements OnInit {
+export class DiagramComponent implements OnInit, OnDestroy {
 
   uml;
+
+  private sub: Subscription;
 
   constructor(
     private store: StoreService,
@@ -24,7 +27,7 @@ export class DiagramComponent implements OnInit {
 
     this.resizeService.setUml(this.uml);
 
-    this.store.data('JSON-UML').get().subscribe(
+    this.sub = this.store.data('JSON-UML').get().subscribe(
       (json) => {
         if (json) {
           this.uml.draw(json);
@@ -33,6 +36,10 @@ export class DiagramComponent implements OnInit {
         }
       }
     );
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 
 }
