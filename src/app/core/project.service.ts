@@ -290,7 +290,16 @@ export class ProjectService {
     });
 
     ipcRenderer.on('trigger-project-close', () => {
-      console.log('close project');
+      if (this.project) {
+        this.onProjectOpen.next(false);
+        ipcRenderer.send('set-window-project-active', {
+          windowId: remote.getCurrentWindow().id,
+          clearProject: true
+        });
+        this.project = null;
+      } else {
+        remote.getCurrentWindow().close();
+      }
     });
   }
 

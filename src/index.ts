@@ -169,7 +169,10 @@ topMenuEvents.on('new-project', () => {
 ipcMain.on('set-window-project-active', (event, data) => {
   const window = BrowserWindow.fromId(data.windowId);
 
-  if (data.projectPath) {
+  if (data.clearProject) {
+    delete (<any>window).customWindowData.isProjectNew;
+    delete (<any>window).customWindowData.projectPath;
+  } else if (data.projectPath) {
     recents.add(data.projectPath);
     delete (<any>window).customWindowData.isProjectNew;
     (<any>window).customWindowData.projectPath = data.projectPath;

@@ -296,7 +296,7 @@ recents.onUpdate(() => {
 
 function updateTopMenu(focusedWindow) {
   const isProjectActive = () => {
-    return !!(<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew );
+    return !!( (<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew ) );
   };
 
   const menuIndex = process.platform === 'darwin' ? 1 : 0;
