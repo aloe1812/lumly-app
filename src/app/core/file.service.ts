@@ -73,11 +73,11 @@ export class FileService {
 
   openFileContextMenu(fileRef, params) {
     this.activeContextFileRef = fileRef;
-    ipcRenderer.send('File:Context-Menu:Open', params);
+    ipcRenderer.send('file-open-context-menu', params);
   }
 
   private subscribeToElectronEvents() {
-    ipcRenderer.on('File:Context-Menu:Clicked', (event, type) => {
+    ipcRenderer.on('file-context-menu-selected', (event, type) => {
       this.activeContextFileRef.handleMenuEvent(type);
     });
   }

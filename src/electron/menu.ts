@@ -327,13 +327,13 @@ export const fileContextMenu = new Menu();
 fileContextMenu.append(new MenuItem({
   label: 'Rename',
   click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'rename');
+    win.webContents.send('file-context-menu-selected', 'rename');
   }
 }));
 
 fileContextMenu.append(new MenuItem({
   label: 'Delete',
   click: function(menuItem, win) {
-    win.webContents.send('File:Context-Menu:Clicked', 'delete');
+    win.webContents.send('file-context-menu-selected', 'delete');
   }
 }));

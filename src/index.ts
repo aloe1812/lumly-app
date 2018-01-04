@@ -36,7 +36,7 @@ function createWindow(data?) {
   dataForWindow.recentFiles = recents.get();
 
   let win = new BrowserWindow({
-    title: 'Lumly',
+    title: 'lumly',
     backgroundColor: '#111111',
     width: bounds.width,
     height: bounds.height,
@@ -132,7 +132,7 @@ ipcMain.on('show-context-menu', function (event, params) {
   contextMenu.popup(win);
 });
 
-ipcMain.on('File:Context-Menu:Open', function (event, params) {
+ipcMain.on('file-open-context-menu', function (event, params) {
   const win = BrowserWindow.fromWebContents(event.sender);
   fileContextMenu.popup(win, {
     x: params.x,
