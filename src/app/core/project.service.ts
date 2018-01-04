@@ -301,6 +301,17 @@ export class ProjectService {
         remote.getCurrentWindow().close();
       }
     });
+
+    ipcRenderer.on('trigger-add', (ev, type) => {
+      switch (type) {
+        case 'file':
+          this.store.event('File:Add').emit();
+          return;
+        case 'folder':
+          this.store.event('Folder:Add').emit();
+          return;
+      }
+    });
   }
 
 }

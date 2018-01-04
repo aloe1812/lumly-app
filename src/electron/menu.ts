@@ -1,6 +1,7 @@
 import { app, Menu, shell, MenuItem, ipcMain, BrowserWindow } from 'electron';
 import * as path from 'path';
 import * as EventEmitter from 'events';
+import * as _ from 'lodash';
 import { recents } from './store';
 
 export const topMenuEvents = new EventEmitter();
@@ -21,17 +22,23 @@ const topMenuTemplate: any = [
         }
       },
       {
-        label: 'New File'
+        label: 'New File',
+        click(item, focusedWindow) {
+          focusedWindow.webContents.send('trigger-add', 'file');
+        }
       },
       {
-        label: 'New Folder'
+        label: 'New Folder',
+        click(item, focusedWindow) {
+          focusedWindow.webContents.send('trigger-add', 'folder');
+        }
       },
       {
         type: 'separator'
       },
       {
         label: 'Open',
-        click (item, focusedWindow) {
+        click(item, focusedWindow) {
           topMenuEvents.emit(
             'open-project',
             {
@@ -80,7 +87,15 @@ const topMenuTemplate: any = [
         type: 'separator'
       },
       {
-        label: process.platform === 'darwin' ? 'Show In Finder' : 'Show In Explorer'
+        label: process.platform === 'darwin' ? 'Show In Finder' : 'Show In Explorer',
+        click(item, focusedWindow) {
+          const isShown = shell.showItemInFolder(focusedWindow.customWindowData.projectPath);
+          if (!isShown) {
+            recents.remove(focusedWindow.customWindowData.projectPath);
+            focusedWindow.webContents.send('open-project-file:error', {type: 'general', origin: 'menu', recentFiles: recents.get()});
+            updateTopMenu(focusedWindow);
+          }
+        }
       }
     ]
   },
@@ -295,20 +310,29 @@ recents.onUpdate(() => {
 })
 
 function updateTopMenu(focusedWindow) {
-  const isProjectActive = () => {
-    return !!( (<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew ) );
-  };
-
   const menuIndex = process.platform === 'darwin' ? 1 : 0;
 
-  const isActive = isProjectActive();
+  const { isActive, hasPath } = getProjectStatus(focusedWindow);
 
-  [1, 2, 8, 9, 10, 11].forEach(i => {
+  _.forEach([1, 2, 8, 9, 10, 11], i => {
     topMenuTemplate[menuIndex].submenu[i].visible = isActive;
   });
 
+  if (isActive) {
+    _.forEach([10, 11], i => {
+      topMenuTemplate[menuIndex].submenu[i].visible = hasPath;
+    });
+  }
+
   const topMenu = Menu.buildFromTemplate(topMenuTemplate);
   Menu.setApplicationMenu(topMenu);
+}
+
+function getProjectStatus(window: BrowserWindow) {
+  return {
+    isActive: !!( (<any>window).customWindowData && ( (<any>window).customWindowData.projectPath || (<any>window).customWindowData.isProjectNew ) ),
+    hasPath: !!( (<any>window).customWindowData && (<any>window).customWindowData.projectPath )
+  }
 }
 
 /***********************************************
