@@ -49,7 +49,14 @@ const topMenuTemplate: any = [
         type: 'separator'
       },
       {
-        label: 'Close'
+        label: 'Close',
+        click: (item, focusedWindow) => {
+          if (BrowserWindow.getAllWindows().length > 1) {
+            focusedWindow.close();
+          } else {
+            focusedWindow.webContents.send('trigger-project-close');
+          }
+        }
       },
       {
         label: 'Save',
@@ -289,22 +296,16 @@ recents.onUpdate(() => {
 
 function updateTopMenu(focusedWindow) {
   const isProjectActive = () => {
-    return (<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew );
+    return !!(<any>focusedWindow).customWindowData && ( (<any>focusedWindow).customWindowData.projectPath || (<any>focusedWindow).customWindowData.isProjectNew );
   };
 
   const menuIndex = process.platform === 'darwin' ? 1 : 0;
 
-  if ( isProjectActive() ) {
-    topMenuTemplate[menuIndex].submenu[1].enabled = true;
-    topMenuTemplate[menuIndex].submenu[2].enabled = true;
-    topMenuTemplate[menuIndex].submenu[8].enabled = true;
-    topMenuTemplate[menuIndex].submenu[9].enabled = true;
-  } else {
-    topMenuTemplate[menuIndex].submenu[1].enabled = false;
-    topMenuTemplate[menuIndex].submenu[2].enabled = false;
-    topMenuTemplate[menuIndex].submenu[8].enabled = false;
-    topMenuTemplate[menuIndex].submenu[9].enabled = false;
-  }
+  const isActive = isProjectActive();
+
+  [1, 2, 8, 9, 10, 11].forEach(i => {
+    topMenuTemplate[menuIndex].submenu[i].visible = isActive;
+  });
 
   const topMenu = Menu.buildFromTemplate(topMenuTemplate);
   Menu.setApplicationMenu(topMenu);

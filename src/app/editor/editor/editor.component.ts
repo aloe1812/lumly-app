@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 import { ResizeService } from 'app/core/resize.service';
@@ -9,6 +9,8 @@ import * as CodeMirror from 'CodeMirror';
 import 'CodeMirror/addon/scroll/simplescrollbars';
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/takeUntil';
+import 'rxjs/add/operator/finally';
 import * as has from 'lodash/has';
 
 @Component({
@@ -16,7 +18,7 @@ import * as has from 'lodash/has';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnInit {
+export class EditorComponent implements OnInit, OnDestroy {
 
   @ViewChild('textarea') textarea: ElementRef;
 
@@ -30,6 +32,7 @@ export class EditorComponent implements OnInit {
   isCodeReviewing = false;
 
   private codeTerms = new Subject<string>();
+  private ngUnsubscribe: Subject<void> = new Subject<void>();
 
   constructor(
     private store: StoreService,
@@ -44,11 +47,18 @@ export class EditorComponent implements OnInit {
     this.subscribeToCodeChange();
     this.subscribeToProjectSaved();
 
-    this.resizeService.onSidebarToggle.subscribe(isOpen => {
-      this.isSidebarOpen = isOpen;
-    });
+    this.resizeService.onSidebarToggle
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(isOpen => {
+        this.isSidebarOpen = isOpen;
+      });
 
     this.resizeService.initWorkspaceResizer();
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
   showSidebar() {
@@ -72,6 +82,7 @@ export class EditorComponent implements OnInit {
 
   private subscribeToActiveFile() {
     this.store.event('File:Selected').get()
+      .takeUntil(this.ngUnsubscribe)
       .subscribe(file => {
         if ( !has(file, 'originalContent') ) {
           file.originalContent = file.content;
@@ -85,10 +96,12 @@ export class EditorComponent implements OnInit {
   }
 
   private subscribeToCodeChange() {
-    this.codeTerms.debounceTime(450).subscribe((code) => {
-      this.setNewFileContent(code);
-      this.checkCode();
-    });
+    this.codeTerms.debounceTime(450)
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe((code) => {
+        this.setNewFileContent(code);
+        this.checkCode();
+      });
   }
 
   private setNewFileContent(code) {
@@ -126,14 +139,13 @@ export class EditorComponent implements OnInit {
   private checkCode() {
     this.isCodeReviewing = true;
     this.generationService.checkCode(this.activeFile.content)
+      .finally(() => this.isCodeReviewing = false)
       .subscribe(
         (diagram) => {
           this.store.data('JSON-UML').set(diagram);
-          this.isCodeReviewing = false;
         },
         () => {
           this.store.data('JSON-UML').set(null);
-          this.isCodeReviewing = false;
         }
       );
   }

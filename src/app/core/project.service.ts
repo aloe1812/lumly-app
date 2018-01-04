@@ -288,6 +288,10 @@ export class ProjectService {
       }
       this.saveProject(true);
     });
+
+    ipcRenderer.on('trigger-project-close', () => {
+      console.log('close project');
+    });
   }
 
 }
