@@ -123,34 +123,6 @@ export class SvgIconService {
       </svg>`
     ],
     [
-      'view-bars',
-      `<svg id="icon_View_bars" data-name="icon View bars" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-      <defs>
-          <style>
-            .cls-1 {
-              fill: none;
-              stroke: #282828;
-              stroke-width: 2px;
-            }
-            .cls-2, .cls-3 {
-              fill: #282828;
-            }
-            .cls-2 {
-              fill-rule: evenodd;
-            }
-          </style>
-        </defs>
-        <rect class="cls-1" x="1" y="1" width="38" height="38" rx="4" ry="4"/>
-        <path class="cls-2" d="M1481,1733h1.95v38H1481v-38Z" transform="translate(-1468 -1732)"/>
-        <g>
-          <rect class="cls-3" x="20" y="8" width="12" height="2"/>
-          <rect id="Rectangle_3_copy_3" data-name="Rectangle 3 copy 3" class="cls-3" x="20" y="13" width="12" height="2"/>
-          <rect id="Rectangle_3_copy_4" data-name="Rectangle 3 copy 4" class="cls-3" x="20" y="18" width="12" height="2"/>
-        </g>
-      </svg>
-      `
-    ],
-    [
       'more',
       `<?xml version="1.0" encoding="iso-8859-1"?>
       <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 30 30" style="enable-background:new 0 0 30 30;" xml:space="preserve" width="24px" height="24px">
@@ -198,6 +170,66 @@ export class SvgIconService {
       <path id="path0_stroke-burger" d="M 0 -1C -0.552285 -1 -1 -0.552285 -1 0C -1 0.552285 -0.552285 1 0 1L 0 -1ZM 14 1C 14.5523 1 15 0.552285 15 0C 15 -0.552285 14.5523 -1 14 -1L 14 1ZM 0 1L 14 1L 14 -1L 0 -1L 0 1Z"/>
       </defs>
       </svg>`
+    ],
+    [
+      'hide-left',
+      `<svg width="18" height="18" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <g id="canvas-hide-left" transform="translate(-2893 -13)">
+      <g id="hide-left">
+      <g id="rectangle-hide-left">
+      <use xlink:href="#path0_fill-hide-left" transform="translate(2893 13)"/>
+      </g>
+      <g id="vector-hide-left">
+      <use xlink:href="#path1_fill-hide-left" transform="translate(2896 16)"/>
+      </g>
+      </g>
+      </g>
+      <defs>
+      <path id="path0_fill-hide-left" fill-rule="evenodd" d="M 0 3C 0 1.34315 1.34315 0 3 0L 15 0C 16.6569 0 18 1.34315 18 3L 18 15C 18 16.6569 16.6569 18 15 18L 3 18C 1.34315 18 0 16.6569 0 15L 0 3ZM 3 2C 2.44772 2 2 2.44772 2 3L 2 15C 2 15.5523 2.44772 16 3 16L 15 16C 15.5523 16 16 15.5523 16 15L 16 3C 16 2.44772 15.5523 2 15 2L 3 2Z"/>
+      <path id="path1_fill-hide-left" fill-rule="evenodd" d="M 0 1C 0 0.447715 0.447715 0 1 0L 2.9999 0C 3.55218 0 3.9999 0.447715 3.9999 1L 3.9999 11C 3.9999 11.5523 3.55218 12 2.9999 12L 1 12C 0.447715 12 0 11.5523 0 11L 0 1Z"/>
+      </defs>
+      </svg>
+      `
+    ],
+    [
+      'hide-bot',
+      `<svg width="18" height="18" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <g id="canvas-hide-bot" transform="translate(-2921 -13)">
+      <g id="hide-bot">
+      <g id="rectangle-hide-bot">
+      <use xlink:href="#path0_fill-hide-bot" transform="translate(2921 13)"/>
+      </g>
+      <g id="vector-hide-bot">
+      <use xlink:href="#path1_fill-hide-bot" transform="translate(2924 24)"/>
+      </g>
+      </g>
+      </g>
+      <defs>
+      <path id="path0_fill-hide-bot" fill-rule="evenodd" d="M 0 3C 0 1.34315 1.34315 0 3 0L 15 0C 16.6569 0 18 1.34315 18 3L 18 15C 18 16.6569 16.6569 18 15 18L 3 18C 1.34315 18 0 16.6569 0 15L 0 3ZM 3 2C 2.44772 2 2 2.44772 2 3L 2 15C 2 15.5523 2.44772 16 3 16L 15 16C 15.5523 16 16 15.5523 16 15L 16 3C 16 2.44772 15.5523 2 15 2L 3 2Z"/>
+      <path id="path1_fill-hide-bot" fill-rule="evenodd" d="M 0 1C 0 0.447715 0.447715 0 1 0L 11 0C 11.5523 0 12 0.447715 12 1L 12 3C 12 3.55228 11.5523 4 11 4L 1 4C 0.447715 4 0 3.55228 0 3L 0 1Z"/>
+      </defs>
+      </svg>
+      `
+    ],
+    [
+      'hide-right',
+      `<svg width="18" height="18" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <g id="canvas-hide-right" transform="translate(-2949 -13)">
+      <g id="hide-right">
+      <g id="rectangle-hide-right">
+      <use xlink:href="#path0_fill-hide-right" transform="translate(2949 13)"/>
+      </g>
+      <g id="Vector">
+      <use xlink:href="#path1_fill-hide-right" transform="translate(2960 16)"/>
+      </g>
+      </g>
+      </g>
+      <defs>
+      <path id="path0_fill-hide-right" fill-rule="evenodd" d="M 0 3C 0 1.34315 1.34315 0 3 0L 15 0C 16.6569 0 18 1.34315 18 3L 18 15C 18 16.6569 16.6569 18 15 18L 3 18C 1.34315 18 0 16.6569 0 15L 0 3ZM 3 2C 2.44772 2 2 2.44772 2 3L 2 15C 2 15.5523 2.44772 16 3 16L 15 16C 15.5523 16 16 15.5523 16 15L 16 3C 16 2.44772 15.5523 2 15 2L 3 2Z"/>
+      <path id="path1_fill-hide-right" fill-rule="evenodd" d="M 0 1C 0 0.447715 0.447715 0 1 0L 2.9999 0C 3.55218 0 3.9999 0.447715 3.9999 1L 3.9999 11C 3.9999 11.5523 3.55218 12 2.9999 12L 1 12C 0.447715 12 0 11.5523 0 11L 0 1Z"/>
+      </defs>
+      </svg>
+      `
     ]
   ]
 

@@ -31,15 +31,3 @@ textarea {
   bottom: 0;
   padding: 12px;
 }
-
-.btn-bars {
-  opacity: 0.55;
-  .svg-icon {
-    width: 16px;
-    height: 16px;
-    color: $darker;
-  }
-  &:hover {
-    opacity: 0.42;
-  }
-}

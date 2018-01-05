@@ -1,8 +1,5 @@
 <div class="main">
   <textarea #textarea name="code"></textarea>
-  <div class="show-sidebar" *ngIf="!isSidebarOpen">
-    <button class="simple-btn btn-bars" (click)="showSidebar()"><svg-icon icon="view-bars"></svg-icon></button>
-  </div>
   <div class="workspace-message" [hidden]="!isCodeReviewing">Review code...</div>
 </div>
 <div class="resizer-trigger"></div>

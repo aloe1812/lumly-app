@@ -119,6 +119,14 @@ export class ResizeService {
     this.onSidebarToggleSub.next(this.isSidebarOpen);
   }
 
+  toggleSidebar() {
+    if (this.isSidebarOpen) {
+      this.hideSidebar();
+    } else {
+      this.showSidebar();
+    }
+  }
+
   initWorkspaceResizer() {
     this.workspaceResizer.element = this.containers.editor.querySelector('.resizer-trigger');
 
@@ -203,10 +211,9 @@ export class ResizeService {
         }
 
         // Скрываем сайдбар, если человек продолжает пытаться его уменьшать
-        if (sidebarNewWidth < this.sidebarResizer.min) {
-          if (sidebarNewWidth < (this.sidebarResizer.min - this.sidebarResizer.margin)) {
+        if ( sidebarNewWidth < this.sidebarResizer.min) {
+          if (this.isSidebarOpen && (sidebarNewWidth < (this.sidebarResizer.min - this.sidebarResizer.margin)) ) {
             this.hideSidebar();
-            return;
           }
           return;
         }
