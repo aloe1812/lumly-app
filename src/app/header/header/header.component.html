@@ -1,4 +1,8 @@
 <div>
-  <button [class.has-changes]="project.project.hasChanges">{{ project.project.title }}</button>
-  <app-breadcrumbs></app-breadcrumbs>
+  <button class="menu-button">
+    <svg-icon icon="burger"></svg-icon>
+  </button>
+  <div class="project-name">{{ project.project.title }}</div>
+  <app-project-status [hasChanges]="project.project.hasChanges"></app-project-status>
+  <!-- <app-breadcrumbs></app-breadcrumbs> -->
 </div>

@@ -3,6 +3,7 @@ import { StoreService } from 'app/core/store.service';
 import { ipcRenderer, remote } from 'electron';
 import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subject } from 'rxjs/Subject';
 
 import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
@@ -23,11 +24,13 @@ export class ProjectService {
   recentProjects: any[];
 
   onProjectOpen = new BehaviorSubject(<any>{pending: true});
+  onProjectSaved = new Subject();
 
   constructor(
     private store: StoreService
   ) {
     this.subscribeToEvents();
+    this.subscribeToTriggerEvents();
   }
 
   prepareProject(project: Project, isNew = false, path?: string) {
@@ -261,6 +264,8 @@ export class ProjectService {
         });
       }
 
+      this.onProjectSaved.next();
+
       this.updateProjectAfterSave();
     });
 
@@ -274,7 +279,9 @@ export class ProjectService {
         });
       }
     });
+  }
 
+  private subscribeToTriggerEvents() {
     ipcRenderer.on('trigger-project-save', () => {
       if (!this.project) {
         return;

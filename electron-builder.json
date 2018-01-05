@@ -21,6 +21,7 @@
     ]
   },
   "fileAssociations": {
-    "ext": "lumly"
+    "ext": "lumly",
+    "icon": "dist/file-icon"
   }
 }
