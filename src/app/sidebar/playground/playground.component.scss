@@ -2,23 +2,25 @@
 
 .playground {
   display: flex;
-  height: 32px;
+  height: 48px;
   align-items: center;
-  padding: 0 9px 0 16px;
+  padding: 0 9px 0 14px;
   font-size: 13px;
-  color: $blue;
-  border-bottom: 1px solid #E5E5E5;
-  justify-content: space-between;
+  color: $dark;
+  border-bottom: 1px solid $file-hover;
   cursor: pointer;
+  .title {
+    margin-left: 14px;
+  }
   .svg-icon {
     width: 18px;
     height: 18px;
-    stroke: $blue;
+    stroke: $dark;
   }
   &.selected {
-    background: $blue;
+    background: $blue2;
     color: #fff;
-    border-bottom-color: $blue;
+    border-bottom-color: $blue2;
     .svg-icon {
       stroke: #fff;
     }
