@@ -1,6 +1,8 @@
 :host {
   background-color: #fff;
   display: flex;
+  padding: 0 10px;
+  flex-direction: column;
   > div {
     flex: 1 1 auto;
   }

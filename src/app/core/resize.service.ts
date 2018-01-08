@@ -70,7 +70,7 @@ export class ResizeService {
   };
 
   private workspaceResizer: any  = {
-    min: 130,
+    min: 180,
     dragging: false
   };
 
@@ -95,6 +95,10 @@ export class ResizeService {
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
 
     this.optimizedResize.add(this.onWindowResize.bind(this));
+
+    if (this.containers.workspace.offsetWidth < this.workspaceResizer.min * 2) {
+      this.onWindowResize();
+    }
   }
 
   setUml(uml) {
@@ -169,8 +173,8 @@ export class ResizeService {
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
 
-        this.editor.refresh();
-        this.uml.diagram.update();
+        this.refreshEditor();
+        this.updateDiagram();
       };
 
       if (window.requestAnimationFrame) {
@@ -247,7 +251,7 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
-    this.uml.diagram.update();
+    this.updateDiagram();
   }
 
   //  Метод который пересчитывает ширину редактора и области диаграмм
@@ -257,8 +261,8 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
-    this.editor.refresh();
-    this.uml.diagram.update();
+    this.refreshEditor();
+    this.updateDiagram();
   }
 
   private calculateNewWorkspaceValues() {
@@ -293,6 +297,18 @@ export class ResizeService {
       this.sizes = clone(this.defaultSizes);
       this.showSidebar();
     });
+  }
+
+  private refreshEditor() {
+    if (this.editor) {
+      this.editor.refresh();
+    }
+  }
+
+  private updateDiagram() {
+    if (this.uml && this.uml.diagram) {
+      this.uml.diagram.update();
+    }
   }
 
 }
