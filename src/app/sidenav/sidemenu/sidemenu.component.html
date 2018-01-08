@@ -1,0 +1,30 @@
+
+<div class="level-1">
+  <header class="sidenav-header">
+    <button class="simple-btn close-btn">
+      <svg-icon icon="close" (click)="close()"></svg-icon>
+    </button>
+    <div class="project-name">{{ project.project.title }}</div>
+  </header>
+  <div class="sidenav-body">
+    <div class="menu-item" [class.active]="isProjectSettingsOpen" (click)="toggleProjectSettings()">
+      <div class="icon settings"><svg-icon icon="settings"></svg-icon></div>
+      <div class="title">Project settings</div>
+    </div>
+    <div class="menu-item">
+      <div class="icon"><svg-icon icon="help"></svg-icon></div>
+      <div class="title">Help</div>
+    </div>
+    <div class="menu-item">
+      <div class="icon"><svg-icon icon="comments"></svg-icon></div>
+      <div class="title">Feedback</div>
+    </div>
+    <div class="menu-item">
+      <div class="icon"><svg-icon icon="overview"></svg-icon></div>
+      <div class="title">Release notes</div>
+    </div>
+  </div>
+</div>
+<div class="level-2" [@innerSidenavState]="projectSettingsState" (@innerSidenavState.done)="animationDone($event)">
+  <app-project-settings *ngIf="isProjectSettingsOpen" [sidenav]="fakeSidenavRef"></app-project-settings>
+</div>

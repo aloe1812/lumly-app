@@ -49,6 +49,7 @@ export class ProjectService {
     }
 
     project.project.guidCounter = 0;
+    project.project.originalTitle = project.project.title;
 
     project.project.hasChanges = !isEmpty(project.project.changes);
 
@@ -211,6 +212,7 @@ export class ProjectService {
     updateFiles(this.project.content.files, 0);
 
     this.project.project.hasChanges = false;
+    this.project.project.originalTitle = this.project.project.title;
 
     function updateFiles(files, parentGuid) {
       forEach(files, (file) => {

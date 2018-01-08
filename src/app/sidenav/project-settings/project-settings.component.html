@@ -1,0 +1,19 @@
+<header class="sidenav-header">
+  <button class="simple-btn back-button" (click)="goBack()">
+    <svg-icon icon="expand-arrow"></svg-icon>
+  </button>
+  <div class="actions">
+    <button class="default-button button-success" [disabled]="!projectNameCtrl.value || projectNameCtrl.value === project.project.title" (click)="saveProjectTitle()">Save</button>
+  </div>
+</header>
+<div class="sidenav-body">
+  <div class="default-form-group">
+    <label for="project-name">Project name</label>
+    <input type="text" id="project-name" [formControl]="projectNameCtrl" name="project-name" placeholder="Untitled" (keydown)="onKeydown($event)">
+  </div>
+</div>
+<footer class="sidenav-footer">
+  <button class="delete-project">
+    <svg-icon icon="close-round"></svg-icon><div>Delete project</div>
+  </button>
+</footer>

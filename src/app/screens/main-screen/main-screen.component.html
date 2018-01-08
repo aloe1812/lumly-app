@@ -8,4 +8,5 @@
 </div>
 <app-sidenav #sidenav (onHidden)="onSidenavHidden()">
   <app-add-folder *ngIf="isAddFolderOpen" [sidenav]="sidenav"></app-add-folder>
+  <app-sidemenu *ngIf="isSidemenuOpen" [sidenav]="sidenav"></app-sidemenu>
 </app-sidenav>
