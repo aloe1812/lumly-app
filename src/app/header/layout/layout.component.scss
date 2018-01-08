@@ -1,0 +1,29 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  margin-right: -5px;
+}
+
+.svg-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+button {
+  border: none;
+  background: none;
+  padding: 2px;
+  margin: 0 3px;
+  cursor: pointer;
+  color: $grey;
+  &:hover {
+    color: lighten($grey, 10%);
+  }
+  &:focus {
+    outline: none;
+  }
+  &.active {
+    color: $blue2;
+  }
+}

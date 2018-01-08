@@ -65,7 +65,7 @@ export class FileComponent implements OnInit {
       this.checkIfPositionChanged();
 
       if (this.isFile) {
-        this.store.event('File:Show:Path').emit(this.filePath);
+        this.store.data('File:Show:Path').set(this.filePath);
       }
 
       this.positionChanged.emit();
@@ -142,7 +142,7 @@ export class FileComponent implements OnInit {
     }
 
     this.store.event('File:Selected').emit(this.file);
-    this.store.event('File:Show:Path').emit(this.filePath);
+    this.store.data('File:Show:Path').set(this.filePath);
   }
 
   private setPath() {

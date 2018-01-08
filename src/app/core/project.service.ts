@@ -3,6 +3,7 @@ import { StoreService } from 'app/core/store.service';
 import { ipcRenderer, remote } from 'electron';
 import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Subject } from 'rxjs/Subject';
 
 import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
@@ -13,7 +14,8 @@ const FILE_ERRORS = {
   invalid: 'Error: Provided file is incorrect or damaged',
   general:  `Error: Project file cannot be found or opened`,
   'save:not-exists': 'Error: Cannot find project path. Perhaps project file was relocated. Please, select where to save project file',
-  'save:general': 'There was an error on saving file'
+  'save:general': 'There was an error on saving file',
+  'delete': 'Error: Cannot delete project'
 }
 
 @Injectable()
@@ -23,11 +25,13 @@ export class ProjectService {
   recentProjects: any[];
 
   onProjectOpen = new BehaviorSubject(<any>{pending: true});
+  onProjectSaved = new Subject();
 
   constructor(
     private store: StoreService
   ) {
     this.subscribeToEvents();
+    this.subscribeToTriggerEvents();
   }
 
   prepareProject(project: Project, isNew = false, path?: string) {
@@ -46,6 +50,7 @@ export class ProjectService {
     }
 
     project.project.guidCounter = 0;
+    project.project.originalTitle = project.project.title;
 
     project.project.hasChanges = !isEmpty(project.project.changes);
 
@@ -168,6 +173,12 @@ export class ProjectService {
     }
   }
 
+  deleteProject() {
+    ipcRenderer.send('project-delete', {
+      path: this.project.project.path
+    });
+  }
+
   private getProjectDataForSave(): ProjectPristine {
     return {
       project: {
@@ -208,6 +219,7 @@ export class ProjectService {
     updateFiles(this.project.content.files, 0);
 
     this.project.project.hasChanges = false;
+    this.project.project.originalTitle = this.project.project.title;
 
     function updateFiles(files, parentGuid) {
       forEach(files, (file) => {
@@ -261,6 +273,8 @@ export class ProjectService {
         });
       }
 
+      this.onProjectSaved.next();
+
       this.updateProjectAfterSave();
     });
 
@@ -275,6 +289,20 @@ export class ProjectService {
       }
     });
 
+    ipcRenderer.on('update-recent', (ev, evData) => {
+      if (isArray(this.recentProjects)) {
+        this.recentProjects.splice(0, this.recentProjects.length, ...evData.recentFiles);
+      } else {
+        this.recentProjects = evData.recentFiles;
+      }
+    });
+
+    ipcRenderer.on('project-delete:error', (ev, evData) => {
+      alert(FILE_ERRORS[evData.type]);
+    });
+  }
+
+  private subscribeToTriggerEvents() {
     ipcRenderer.on('trigger-project-save', () => {
       if (!this.project) {
         return;
@@ -297,6 +325,7 @@ export class ProjectService {
           clearProject: true
         });
         this.project = null;
+        this.store.data('JSON-UML').set(null);
       } else {
         remote.getCurrentWindow().close();
       }

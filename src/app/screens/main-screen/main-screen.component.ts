@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { StoreService } from 'app/core/store.service';
 import { ResizeService } from 'app/core/resize.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'app-main-screen',
@@ -11,7 +11,8 @@ import { Subscription } from 'rxjs/Subscription';
 export class MainScreenComponent implements OnInit, OnDestroy {
 
   isAddFolderOpen = false;
-  private sub: Subscription;
+  isSidemenuOpen = false;
+  private ngUnsubscribe: Subject<void> = new Subject<void>();
 
   constructor(
     private store: StoreService,
@@ -25,17 +26,26 @@ export class MainScreenComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.sub.unsubscribe();
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
   }
 
   onSidenavHidden() {
     this.isAddFolderOpen = false;
+    this.isSidemenuOpen = false;
   }
 
   private subscribeToSidenavEvents() {
-    this.sub = this.store.event('Folder:Add').get()
+    this.store.event('Folder:Add').get()
+      .takeUntil(this.ngUnsubscribe)
       .subscribe(() => {
         this.isAddFolderOpen = true;
+      });
+
+    this.store.event('Sidemenu:Open').get()
+      .takeUntil(this.ngUnsubscribe)
+      .subscribe(() => {
+        this.isSidemenuOpen = true;
       });
   }
 

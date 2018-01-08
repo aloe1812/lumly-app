@@ -53,6 +53,10 @@ input, button {
   }
 }
 
+.diagram .canvas {
+  padding: 0 10px;
+}
+
 canvas:focus {
   outline: none;
 }

@@ -12,7 +12,7 @@ export class PlaygroundComponent implements OnInit {
     content: '',
     isSelected: true,
     type: 'playground',
-    title: 'Playground'
+    title: 'Here you can play with other functions'
   };
 
   constructor(
@@ -29,7 +29,7 @@ export class PlaygroundComponent implements OnInit {
     }
 
     this.store.event('File:Selected').emit(this.file);
-    this.store.event('File:Show:Path').emit([this.file]);
+    this.store.data('File:Show:Path').set([this.file]);
   }
 
 }

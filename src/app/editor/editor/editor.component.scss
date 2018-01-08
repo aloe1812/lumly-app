@@ -10,6 +10,12 @@
 .main {
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
+}
+
+.code {
+  flex: 1 1 auto;
+  display: flex;
 }
 
 textarea {
@@ -21,25 +27,5 @@ textarea {
   padding: 24px;
   &:focus {
     outline: none;
-  }
-}
-
-.show-sidebar {
-  position: absolute;
-  z-index: 10;
-  left: 0;
-  bottom: 0;
-  padding: 12px;
-}
-
-.btn-bars {
-  opacity: 0.55;
-  .svg-icon {
-    width: 16px;
-    height: 16px;
-    color: $darker;
-  }
-  &:hover {
-    opacity: 0.42;
   }
 }

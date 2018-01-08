@@ -70,7 +70,7 @@ export class ResizeService {
   };
 
   private workspaceResizer: any  = {
-    min: 130,
+    min: 180,
     dragging: false
   };
 
@@ -95,6 +95,10 @@ export class ResizeService {
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
 
     this.optimizedResize.add(this.onWindowResize.bind(this));
+
+    if (this.containers.workspace.offsetWidth < this.workspaceResizer.min * 2) {
+      this.onWindowResize();
+    }
   }
 
   setUml(uml) {
@@ -117,6 +121,14 @@ export class ResizeService {
     this.containers.sidebar.style.width = 0;
     this.fixWorkspace();
     this.onSidebarToggleSub.next(this.isSidebarOpen);
+  }
+
+  toggleSidebar() {
+    if (this.isSidebarOpen) {
+      this.hideSidebar();
+    } else {
+      this.showSidebar();
+    }
   }
 
   initWorkspaceResizer() {
@@ -161,8 +173,8 @@ export class ResizeService {
         this.containers.editor.style.width = editorNewWidth + 'px';
         this.containers.diagram.style.width = diagramNewWidth + 'px';
 
-        this.editor.refresh();
-        this.uml.diagram.update();
+        this.refreshEditor();
+        this.updateDiagram();
       };
 
       if (window.requestAnimationFrame) {
@@ -203,10 +215,9 @@ export class ResizeService {
         }
 
         // Скрываем сайдбар, если человек продолжает пытаться его уменьшать
-        if (sidebarNewWidth < this.sidebarResizer.min) {
-          if (sidebarNewWidth < (this.sidebarResizer.min - this.sidebarResizer.margin)) {
+        if ( sidebarNewWidth < this.sidebarResizer.min) {
+          if (this.isSidebarOpen && (sidebarNewWidth < (this.sidebarResizer.min - this.sidebarResizer.margin)) ) {
             this.hideSidebar();
-            return;
           }
           return;
         }
@@ -240,7 +251,7 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
-    this.uml.diagram.update();
+    this.updateDiagram();
   }
 
   //  Метод который пересчитывает ширину редактора и области диаграмм
@@ -250,8 +261,8 @@ export class ResizeService {
     this.containers.editor.style.width = newEditorWidth + 'px';
     this.containers.diagram.style.width = newDiagramWidth + 'px';
 
-    this.editor.refresh();
-    this.uml.diagram.update();
+    this.refreshEditor();
+    this.updateDiagram();
   }
 
   private calculateNewWorkspaceValues() {
@@ -286,6 +297,18 @@ export class ResizeService {
       this.sizes = clone(this.defaultSizes);
       this.showSidebar();
     });
+  }
+
+  private refreshEditor() {
+    if (this.editor) {
+      this.editor.refresh();
+    }
+  }
+
+  private updateDiagram() {
+    if (this.uml && this.uml.diagram) {
+      this.uml.diagram.update();
+    }
   }
 
 }

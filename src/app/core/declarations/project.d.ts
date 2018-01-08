@@ -17,6 +17,7 @@ export class FilePristine {
 export class Project extends ProjectPristine {
   project: {
     title: string;
+    originalTitle?: string;
     path?: string;
     changes?: any;
     guidCounter?: number;

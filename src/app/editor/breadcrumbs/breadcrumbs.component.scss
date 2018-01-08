@@ -1,12 +1,10 @@
 @import '../../../assets/styles/variables';
 
 :host {
-  color: #fff;
   display: flex;
   flex: 1 1 auto;
   font-size: 13px;
   color: $grey;
-  padding-left: 8px;
   > div {
     display: flex;
     align-items: center;
@@ -19,6 +17,9 @@
     }
   }
   > div:last-child {
-    color: $light;
+    color: #000;
+  }
+  .playground > div {
+    color: $grey;
   }
 }

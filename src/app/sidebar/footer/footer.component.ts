@@ -3,7 +3,6 @@ import { StoreService } from '../../core/store.service';
 import { InjectionService } from '../../core/injection.service';
 import { AddMenuComponent } from '../../sidebar/add-menu/add-menu.component';
 import { ProjectService } from 'app/core/project.service';
-import { ResizeService } from 'app/core/resize.service';
 
 @Component({
   selector: 'app-footer',
@@ -15,8 +14,7 @@ export class FooterComponent {
   constructor(
     private store: StoreService,
     private injector: InjectionService,
-    private projectService: ProjectService,
-    private resizeService: ResizeService
+    private projectService: ProjectService
   ) { }
 
   openAddMenu() {
@@ -47,10 +45,6 @@ export class FooterComponent {
           this.store.event('Folder:Add').emit();
         }
       });
-  }
-
-  hideSidebar() {
-    this.resizeService.hideSidebar();
   }
 
 }

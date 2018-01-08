@@ -1,0 +1,42 @@
+@import '../../../assets/styles/variables';
+
+:host {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  position: relative;
+  padding: 0 10px;
+}
+
+button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: $toolbar-btn-color;
+  padding: 2px;
+  &:focus {
+    outline: none;
+  }
+  .svg-icon {
+    display: block;
+    width: 17px;
+    height: 17px;
+  }
+  &:hover {
+    color: lighten($toolbar-btn-color, 5%);
+  }
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  > div {
+    color: $toolbar-btn-color;
+    margin: 0 10px;
+    font-size: 13px;
+  }
+}

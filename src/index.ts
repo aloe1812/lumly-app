@@ -177,6 +177,7 @@ ipcMain.on('set-window-project-active', (event, data) => {
     delete (<any>window).customWindowData.isProjectNew;
     (<any>window).customWindowData.projectPath = data.projectPath;
   } else {
+    delete (<any>window).customWindowData.projectPath;
     (<any>window).customWindowData.isProjectNew = true;
   }
 });
@@ -393,4 +394,38 @@ ipcMain.on('project-save-as', (event, data) => {
     });
 
   });
+});
+
+/*********** Удаление проекта ***************/
+ipcMain.on('project-delete', (event, data) => {
+
+  fs.unlink(data.path, (error) => {
+    if (error) {
+      if (error.code === 'ENOENT') {
+        onSuccess();
+      } else {
+        event.sender.webContents.send('project-delete:error', {
+          type: 'delete'
+        });
+      }
+
+      return;
+    }
+
+    onSuccess();
+  });
+
+  function onSuccess() {
+    recents.remove(data.path);
+
+    if (BrowserWindow.getAllWindows().length > 1) {
+      BrowserWindow.fromWebContents(event.sender.webContents).close();
+    } else {
+      event.sender.webContents.send('update-recent', {
+        recentFiles: recents.get()
+      });
+      event.sender.webContents.send('trigger-project-close');
+    }
+  }
+
 });

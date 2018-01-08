@@ -28,7 +28,6 @@ export class EditorComponent implements OnInit, OnDestroy {
   activeFile;
   lastFileChangedStatus = false;
 
-  isSidebarOpen = true;
   isCodeReviewing = false;
 
   private codeTerms = new Subject<string>();
@@ -47,22 +46,12 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.subscribeToCodeChange();
     this.subscribeToProjectSaved();
 
-    this.resizeService.onSidebarToggle
-      .takeUntil(this.ngUnsubscribe)
-      .subscribe(isOpen => {
-        this.isSidebarOpen = isOpen;
-      });
-
     this.resizeService.initWorkspaceResizer();
   }
 
   ngOnDestroy() {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
-  }
-
-  showSidebar() {
-    this.resizeService.showSidebar();
   }
 
   private initEditor() {

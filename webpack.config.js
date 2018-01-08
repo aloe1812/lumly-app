@@ -114,6 +114,14 @@ function getPlugins() {
         "glob": "icon.*",
         "dot": true
       }
+    },
+    {
+      "context": "src",
+      "to": "",
+      "from": {
+        "glob": "file-icon.*",
+        "dot": true
+      }
     }
   ], {
     "ignore": [

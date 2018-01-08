@@ -26,7 +26,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
 
   // TODO: разобраться почему тут вылетает ошибка ExpressionChangedAfterItHasBeenCheckedError
   private subscribeToActiveFile() {
-    this.sub = this.store.event('File:Show:Path').get()
+    this.sub = this.store.data('File:Show:Path').get()
       .subscribe(path => {
         if (path) {
           setTimeout(() => { this.path = path; });

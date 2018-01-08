@@ -113,6 +113,11 @@
 
   .sidenav-body {
     padding: 0 16px 10px;
+    flex: 1 1 auto;
+  }
+
+  .sidenav-footer {
+    flex: 0 0 auto;
   }
 
   .default-form-group {
