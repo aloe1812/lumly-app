@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ProjectService } from 'app/core/project.service';
+import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
 
 @Component({
   selector: 'app-project-settings',
@@ -16,7 +17,8 @@ export class ProjectSettingsComponent implements OnInit {
   projectNameCtrl = new FormControl();
 
   constructor(
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private uiUtils: SharedUiUtilsService
   ) { }
 
   @HostListener('document:keydown', ['$event'])
@@ -56,6 +58,15 @@ export class ProjectSettingsComponent implements OnInit {
 
   goBack() {
     this.sidenav.hide();
+  }
+
+  deleteProject() {
+    this.uiUtils.confirmDelete({title: 'project'})
+      .subscribe((isSure) => {
+        if (isSure) {
+          this.projectService.deleteProject();
+        }
+      });
   }
 
 }
