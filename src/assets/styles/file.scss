@@ -14,23 +14,23 @@ app-file {
   font-size: 13px;
   position: relative;
   overflow: hidden;
-  color: $dark;
+  color: #000;
 
   &.is-group {
-    color: $grey;
+    color: $file-color;
   }
 
   .icon-arrow {
     width: 10px;
     height: 10px;
-    color: $grey;
+    color: $file-color;
     margin: 0 1px 0 2px;
     transform: rotate(-90deg);
     flex: 0 0 auto;
   }
 
   .icon-file {
-    color: $grey;
+    color: $file-color;
     width: 14px;
     height: 14px;
     flex: 0 0 auto;
@@ -64,7 +64,7 @@ app-file {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background-color: $blue;
+      background-color: $blue2;
       position: absolute;
       right: 16px;
       top: 50%;
