@@ -10,6 +10,12 @@
 .main {
   flex: 1 1 auto;
   display: flex;
+  flex-direction: column;
+}
+
+.code {
+  flex: 1 1 auto;
+  display: flex;
 }
 
 textarea {
@@ -22,12 +28,4 @@ textarea {
   &:focus {
     outline: none;
   }
-}
-
-.show-sidebar {
-  position: absolute;
-  z-index: 10;
-  left: 0;
-  bottom: 0;
-  padding: 12px;
 }

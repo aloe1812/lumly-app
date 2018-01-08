@@ -1,5 +1,8 @@
 <div class="main">
-  <textarea #textarea name="code"></textarea>
+  <app-header></app-header>
+  <div class="code">
+    <textarea #textarea name="code"></textarea>
+  </div>
   <div class="workspace-message" [hidden]="!isCodeReviewing">Review code...</div>
 </div>
 <div class="resizer-trigger"></div>

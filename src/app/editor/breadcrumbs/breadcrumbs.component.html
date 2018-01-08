@@ -1,0 +1,4 @@
+<div *ngFor="let file of path; let last = last;" [class.playground]="file.type === 'playground'">
+  <div>{{ file.title }}</div>
+  <svg-icon *ngIf="!last" icon="expand-arrow"></svg-icon>
+</div>
