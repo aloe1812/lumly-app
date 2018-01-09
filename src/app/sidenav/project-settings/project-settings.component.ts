@@ -60,13 +60,4 @@ export class ProjectSettingsComponent implements OnInit {
     this.sidenav.hide();
   }
 
-  deleteProject() {
-    this.uiUtils.confirmDelete({title: 'project'})
-      .subscribe((isSure) => {
-        if (isSure) {
-          this.projectService.deleteProject();
-        }
-      });
-  }
-
 }

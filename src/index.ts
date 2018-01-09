@@ -127,17 +127,21 @@ app.on('browser-window-created', function (event, win) {
   });
 });
 
-ipcMain.on('show-context-menu', function (event, params) {
+ipcMain.on('show-context-menu', (event, params) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
 });
 
-ipcMain.on('file-open-context-menu', function (event, params) {
+ipcMain.on('file-open-context-menu', (event, params) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   fileContextMenu.popup(win, {
     x: params.x,
     y: params.y
   });
+});
+
+ipcMain.on('get-filename-from-path', (event, filePath) => {
+  event.returnValue = path.basename(filePath);
 });
 
 /***********************************************
@@ -394,38 +398,4 @@ ipcMain.on('project-save-as', (event, data) => {
     });
 
   });
-});
-
-/*********** Удаление проекта ***************/
-ipcMain.on('project-delete', (event, data) => {
-
-  fs.unlink(data.path, (error) => {
-    if (error) {
-      if (error.code === 'ENOENT') {
-        onSuccess();
-      } else {
-        event.sender.webContents.send('project-delete:error', {
-          type: 'delete'
-        });
-      }
-
-      return;
-    }
-
-    onSuccess();
-  });
-
-  function onSuccess() {
-    recents.remove(data.path);
-
-    if (BrowserWindow.getAllWindows().length > 1) {
-      BrowserWindow.fromWebContents(event.sender.webContents).close();
-    } else {
-      event.sender.webContents.send('update-recent', {
-        recentFiles: recents.get()
-      });
-      event.sender.webContents.send('trigger-project-close');
-    }
-  }
-
 });

@@ -4,6 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
+import { Title } from '@angular/platform-browser';
 
 import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
@@ -14,8 +15,7 @@ const FILE_ERRORS = {
   invalid: 'Error: Provided file is incorrect or damaged',
   general:  `Error: Project file cannot be found or opened`,
   'save:not-exists': 'Error: Cannot find project path. Perhaps project file was relocated. Please, select where to save project file',
-  'save:general': 'There was an error on saving file',
-  'delete': 'Error: Cannot delete project'
+  'save:general': 'There was an error on saving file'
 }
 
 @Injectable()
@@ -28,7 +28,8 @@ export class ProjectService {
   onProjectSaved = new Subject();
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private title: Title
   ) {
     this.subscribeToEvents();
     this.subscribeToTriggerEvents();
@@ -138,6 +139,7 @@ export class ProjectService {
       eventData.projectPath = project.project.path;
     }
 
+    this.setWindowTitle();
     ipcRenderer.send('set-window-project-active', eventData);
 
     this.onProjectOpen.next({
@@ -173,10 +175,16 @@ export class ProjectService {
     }
   }
 
-  deleteProject() {
-    ipcRenderer.send('project-delete', {
-      path: this.project.project.path
-    });
+  setWindowTitle() {
+    if (this.project) {
+      if (this.project.project.path) {
+        this.title.setTitle(ipcRenderer.sendSync('get-filename-from-path', this.project.project.path));
+      } else {
+        this.title.setTitle('(unsaved)');
+      }
+    } else {
+      this.title.setTitle('lumly');
+    }
   }
 
   private getProjectDataForSave(): ProjectPristine {
@@ -271,6 +279,7 @@ export class ProjectService {
           windowId: remote.getCurrentWindow().id,
           projectPath: this.project.project.path
         });
+        this.setWindowTitle();
       }
 
       this.onProjectSaved.next();
@@ -295,10 +304,6 @@ export class ProjectService {
       } else {
         this.recentProjects = evData.recentFiles;
       }
-    });
-
-    ipcRenderer.on('project-delete:error', (ev, evData) => {
-      alert(FILE_ERRORS[evData.type]);
     });
   }
 
@@ -325,6 +330,7 @@ export class ProjectService {
           clearProject: true
         });
         this.project = null;
+        this.setWindowTitle();
         this.store.data('JSON-UML').set(null);
       } else {
         remote.getCurrentWindow().close();

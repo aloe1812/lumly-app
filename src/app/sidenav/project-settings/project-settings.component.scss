@@ -1,38 +1,5 @@
 @import '../../../assets/styles/variables';
 
-.delete-project {
-  display: inline-flex;
-  align-items: center;
-  border: none;
-  background: transparent;
-  color: $light;
-  opacity: 0.48;
-  height: 32px;
-  font-size: 14px;
-  padding: 0 2px;
-  line-height: 1;
-  cursor: pointer;
-  .svg-icon {
-    width: 16px;
-    height: 16px;
-    display: block;
-    margin-right: 12px;
-  }
-  &:focus {
-    outline: none;
-  }
-  &:hover {
-    opacity: 1;
-  }
-}
-
-.sidenav-footer {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 14px;
-}
-
 .sidenav-body {
   overflow: auto;
   &::-webkit-scrollbar-thumb {
