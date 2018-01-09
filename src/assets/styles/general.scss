@@ -47,6 +47,10 @@ input, button {
   .editor .main {
     user-select: none;
   }
+  .CodeMirror-code {
+    user-select: none;
+    cursor: col-resize;
+  }
   .diagram, .diagram canvas {
     cursor: col-resize !important;
     user-select: none !important;
