@@ -178,9 +178,9 @@ export class ProjectService {
   setWindowTitle() {
     if (this.project) {
       if (this.project.project.path) {
-        this.title.setTitle(ipcRenderer.sendSync('get-filename-from-path', this.project.project.path));
+        this.title.setTitle(`${this.project.project.title} (${ipcRenderer.sendSync('get-filename-from-path', this.project.project.path)})`);
       } else {
-        this.title.setTitle('(unsaved)');
+        this.title.setTitle(`${this.project.project.title} (unsaved)`);
       }
     } else {
       this.title.setTitle('lumly');

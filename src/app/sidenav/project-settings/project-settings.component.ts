@@ -41,6 +41,7 @@ export class ProjectSettingsComponent implements OnInit {
     }
 
     this.project.project.title = this.projectNameCtrl.value;
+    this.projectService.setWindowTitle();
 
     this.projectService.saveChange({
       guid: 'PROJECT_SELF',

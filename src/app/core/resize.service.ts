@@ -51,9 +51,13 @@ export class ResizeService {
   }());
 
   private isSidebarOpen = true;
+  private isDiagramOpen = true;
 
-  private onSidebarToggleSub = new BehaviorSubject(true);
-  onSidebarToggle = this.onSidebarToggleSub.asObservable();
+  private resizerEvents$ = new BehaviorSubject({
+    isSidebarOpen: true,
+    isDiagramOpen: true
+  });
+  resizerEvents = this.resizerEvents$.asObservable();
 
   private containers;
   private uml;
@@ -113,14 +117,14 @@ export class ResizeService {
     this.isSidebarOpen = true;
     this.containers.sidebar.style.width = `${this.sizes.sidebar}px`;
     this.fixWorkspace();
-    this.onSidebarToggleSub.next(this.isSidebarOpen);
+    this.emitResizerEvents();
   }
 
   hideSidebar() {
     this.isSidebarOpen = false;
     this.containers.sidebar.style.width = 0;
     this.fixWorkspace();
-    this.onSidebarToggleSub.next(this.isSidebarOpen);
+    this.emitResizerEvents();
   }
 
   toggleSidebar() {
@@ -128,6 +132,31 @@ export class ResizeService {
       this.hideSidebar();
     } else {
       this.showSidebar();
+    }
+  }
+
+  showDiagram() {
+    this.isDiagramOpen = true;
+    this.containers.diagram.style.display = '';
+    this.workspaceResizer.element.style.visibility = '';
+    this.fixWorkspace();
+    this.emitResizerEvents();
+  }
+
+  hideDiagram() {
+    this.isDiagramOpen = false;
+    this.containers.diagram.style.width = 0;
+    this.containers.diagram.style.display = 'none';
+    this.workspaceResizer.element.style.visibility = 'hidden';
+    this.fixWorkspace();
+    this.emitResizerEvents();
+  }
+
+  toggleDiagram() {
+    if (this.isDiagramOpen) {
+      this.hideDiagram();
+    } else {
+      this.showDiagram();
     }
   }
 
@@ -163,15 +192,29 @@ export class ResizeService {
 
         let diagramNewWidth = this.workspaceResizer.workspaceWidth - editorNewWidth;
 
-        if (diagramNewWidth < this.workspaceResizer.min) {
-          diagramNewWidth = this.workspaceResizer.min;
-          editorNewWidth = this.workspaceResizer.workspaceWidth - diagramNewWidth;
+        if (diagramNewWidth < this.workspaceResizer.min) { // ширина области диаграмм меньше минимума
+          diagramNewWidth = 0;
+          editorNewWidth = this.workspaceResizer.workspaceWidth;
+          if (this.isDiagramOpen) { // если диаграмма открыта, то скрываем ее
+            this.isDiagramOpen = false;
+            this.containers.diagram.style.width = 0;
+            this.containers.diagram.style.display = 'none';
+            this.workspaceResizer.element.style.visibility = 'hidden';
+            this.emitResizerEvents();
+          }
+        } else if (!this.isDiagramOpen) { // если была закрыта, но теперь ширина достаточна, то заново показываем области диаграммы
+          this.isDiagramOpen = true;
+          this.containers.diagram.style.display = '';
+          this.workspaceResizer.element.style.visibility = '';
+          this.emitResizerEvents();
         }
 
         this.sizes.workspaceProportion = editorNewWidth / this.workspaceResizer.workspaceWidth;
 
         this.containers.editor.style.width = editorNewWidth + 'px';
-        this.containers.diagram.style.width = diagramNewWidth + 'px';
+        if (this.isDiagramOpen) {
+          this.containers.diagram.style.width = diagramNewWidth + 'px';
+        }
 
         this.refreshEditor();
         this.updateDiagram();
@@ -228,7 +271,7 @@ export class ResizeService {
 
         if (!this.isSidebarOpen) {
           this.isSidebarOpen = true;
-          this.onSidebarToggleSub.next(this.isSidebarOpen);
+          this.emitResizerEvents();
         }
       };
 
@@ -237,6 +280,13 @@ export class ResizeService {
       } else {
         resizeFunc();
       }
+    });
+  }
+
+  private emitResizerEvents() {
+    this.resizerEvents$.next({
+      isSidebarOpen: this.isSidebarOpen,
+      isDiagramOpen: this.isDiagramOpen
     });
   }
 
@@ -268,19 +318,25 @@ export class ResizeService {
   private calculateNewWorkspaceValues() {
     const workspaceWidth = this.containers.workspace.offsetWidth;
 
-    let newEditorWidth = this.sizes.workspaceProportion * workspaceWidth;
+    let newEditorWidth, newDiagramWidth;
 
-    newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
-
-    let newDiagramWidth = workspaceWidth - newEditorWidth;
-
-    if (newDiagramWidth < this.workspaceResizer.min) {
-      newDiagramWidth = this.workspaceResizer.min;
-      newEditorWidth = workspaceWidth - newDiagramWidth;
+    if (this.isDiagramOpen) {
+      newEditorWidth = this.sizes.workspaceProportion * workspaceWidth;
       newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
-    }
 
-    this.sizes.workspaceProportion = newEditorWidth / workspaceWidth;
+      newDiagramWidth = workspaceWidth - newEditorWidth;
+
+      if (newDiagramWidth < this.workspaceResizer.min) {
+        newDiagramWidth = this.workspaceResizer.min;
+        newEditorWidth = workspaceWidth - newDiagramWidth;
+        newEditorWidth = newEditorWidth < this.workspaceResizer.min ? this.workspaceResizer.min : newEditorWidth;
+      }
+
+      this.sizes.workspaceProportion = newEditorWidth / workspaceWidth;
+    } else {
+      newEditorWidth = workspaceWidth;
+      newDiagramWidth = 0;
+    }
 
     return {
       newEditorWidth,

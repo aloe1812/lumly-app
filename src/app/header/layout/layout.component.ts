@@ -10,6 +10,7 @@ import { Subject } from 'rxjs/Subject';
 export class LayoutComponent implements OnInit, OnDestroy {
 
   isSidebarOpen = true;
+  isDiagramOpen = true;
 
   private ngUnsubscribe: Subject<void> = new Subject<void>();
 
@@ -18,10 +19,11 @@ export class LayoutComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.resizeService.onSidebarToggle
+    this.resizeService.resizerEvents
       .takeUntil(this.ngUnsubscribe)
-      .subscribe(isOpen => {
-        this.isSidebarOpen = isOpen;
+      .subscribe(data => {
+        this.isSidebarOpen = data.isSidebarOpen;
+        this.isDiagramOpen = data.isDiagramOpen;
       });
   }
 
@@ -32,6 +34,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   toggleSidebar() {
     this.resizeService.toggleSidebar();
+  }
+
+  toggleDiagram() {
+    this.resizeService.toggleDiagram();
   }
 
 }
