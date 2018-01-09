@@ -1,7 +1,9 @@
 <div>
-  <button class="menu-button" (click)="openSidemenu()">
-    <svg-icon icon="burger"></svg-icon>
-  </button>
+  <div class="menu-button-container">
+    <button class="menu-button" (click)="openSidemenu()">
+      <svg-icon icon="burger"></svg-icon>
+    </button>
+  </div>
   <div class="project-name">{{ project.project.title }}</div>
   <app-project-status [hasChanges]="project.project.hasChanges"></app-project-status>
 </div>
