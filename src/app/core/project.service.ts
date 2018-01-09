@@ -14,8 +14,7 @@ const FILE_ERRORS = {
   invalid: 'Error: Provided file is incorrect or damaged',
   general:  `Error: Project file cannot be found or opened`,
   'save:not-exists': 'Error: Cannot find project path. Perhaps project file was relocated. Please, select where to save project file',
-  'save:general': 'There was an error on saving file',
-  'delete': 'Error: Cannot delete project'
+  'save:general': 'There was an error on saving file'
 }
 
 @Injectable()
@@ -173,12 +172,6 @@ export class ProjectService {
     }
   }
 
-  deleteProject() {
-    ipcRenderer.send('project-delete', {
-      path: this.project.project.path
-    });
-  }
-
   private getProjectDataForSave(): ProjectPristine {
     return {
       project: {
@@ -295,10 +288,6 @@ export class ProjectService {
       } else {
         this.recentProjects = evData.recentFiles;
       }
-    });
-
-    ipcRenderer.on('project-delete:error', (ev, evData) => {
-      alert(FILE_ERRORS[evData.type]);
     });
   }
 

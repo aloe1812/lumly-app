@@ -12,8 +12,3 @@
     <input type="text" id="project-name" [formControl]="projectNameCtrl" name="project-name" placeholder="Untitled" (keydown)="onKeydown($event)">
   </div>
 </div>
-<footer class="sidenav-footer" *ngIf="project.project.path">
-  <button class="delete-project" (click)="deleteProject()">
-    <svg-icon icon="close-round"></svg-icon><div>Delete project</div>
-  </button>
-</footer>
