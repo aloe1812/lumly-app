@@ -127,17 +127,21 @@ app.on('browser-window-created', function (event, win) {
   });
 });
 
-ipcMain.on('show-context-menu', function (event, params) {
+ipcMain.on('show-context-menu', (event, params) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
 });
 
-ipcMain.on('file-open-context-menu', function (event, params) {
+ipcMain.on('file-open-context-menu', (event, params) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   fileContextMenu.popup(win, {
     x: params.x,
     y: params.y
   });
+});
+
+ipcMain.on('get-filename-from-path', (event, filePath) => {
+  event.returnValue = path.basename(filePath);
 });
 
 /***********************************************

@@ -4,6 +4,7 @@ import { ipcRenderer, remote } from 'electron';
 import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
+import { Title } from '@angular/platform-browser';
 
 import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
@@ -27,7 +28,8 @@ export class ProjectService {
   onProjectSaved = new Subject();
 
   constructor(
-    private store: StoreService
+    private store: StoreService,
+    private title: Title
   ) {
     this.subscribeToEvents();
     this.subscribeToTriggerEvents();
@@ -137,6 +139,7 @@ export class ProjectService {
       eventData.projectPath = project.project.path;
     }
 
+    this.setWindowTitle();
     ipcRenderer.send('set-window-project-active', eventData);
 
     this.onProjectOpen.next({
@@ -169,6 +172,18 @@ export class ProjectService {
         path: this.project.project.path,
         file: JSON.stringify(projectData)
       });
+    }
+  }
+
+  setWindowTitle() {
+    if (this.project) {
+      if (this.project.project.path) {
+        this.title.setTitle(ipcRenderer.sendSync('get-filename-from-path', this.project.project.path));
+      } else {
+        this.title.setTitle('(unsaved)');
+      }
+    } else {
+      this.title.setTitle('lumly');
     }
   }
 
@@ -264,6 +279,7 @@ export class ProjectService {
           windowId: remote.getCurrentWindow().id,
           projectPath: this.project.project.path
         });
+        this.setWindowTitle();
       }
 
       this.onProjectSaved.next();
@@ -314,6 +330,7 @@ export class ProjectService {
           clearProject: true
         });
         this.project = null;
+        this.setWindowTitle();
         this.store.data('JSON-UML').set(null);
       } else {
         remote.getCurrentWindow().close();
