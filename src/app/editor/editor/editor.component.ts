@@ -11,8 +11,11 @@ import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/finally';
+
 import * as forEach from 'lodash/forEach';
 import * as has from 'lodash/has';
+import * as last from 'lodash/last';
+import * as isString from 'lodash/isString';
 
  // TODO: подумать как брать позицию откуда началось изменениe
 @Component({
@@ -31,6 +34,8 @@ export class EditorComponent implements OnInit, OnDestroy {
   lastFileChangedStatus = false;
 
   isCodeReviewing = false;
+
+  private fromCursor;
 
   private chronicle = new Chronicle();
   private codeTerms = new Subject<string>();
@@ -85,10 +90,18 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.generationService.setEditor(this.editor);
     this.resizeService.setEditor(this.editor);
 
+    this.editor.on('beforeChange', () => {
+      if (!this.fromCursor) {
+        this.fromCursor = this.editor.getCursor();
+      }
+    });
+
     this.editor.on('change', (codemirror) => {
       if (this.chronicle.preventEditorChange()) {
+        this.fromCursor = null;
         return;
       }
+
       this.codeTerms.next(codemirror.getValue());
     });
   }
@@ -107,6 +120,9 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.lastFileChangedStatus = !!file.isChanged;
 
         this.activeFile = file;
+
+        this.chronicle.addToHistory(file.content, '0,0:0,0');
+
         this.editor.setValue(file.content);
       });
   }
@@ -126,10 +142,8 @@ export class EditorComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const prevCursor = cursor || this.editor.getCursor();
-
       this.editor.setValue(this.activeFile.content);
-      this.editor.setCursor(prevCursor);
+      this.editor.setCursor(cursor || this.editor.getCursor());
 
       this.saveFileChanges();
       this.checkCode();
@@ -142,7 +156,13 @@ export class EditorComponent implements OnInit, OnDestroy {
     }
 
     this.activeFile.content = code;
-    this.chronicle.addToHistory(this.activeFile.content, this.editor.getCursor());
+
+    this.chronicle.addToHistory(this.activeFile.content, {
+      from: this.fromCursor || this.editor.getCursor(),
+      to: this.editor.getCursor()
+    });
+
+    this.fromCursor = null;
 
     this.saveFileChanges();
   }
@@ -193,11 +213,8 @@ class Chronicle {
 
   activeFile;
 
-  private callback;
-
   private preventEditor = false;
-  private ignoreFirst = true;
-  private firstPos;
+  private callback;
 
   constructor() {}
 
@@ -205,24 +222,22 @@ class Chronicle {
     if (!this.isChangesObjExists(file)) {
       file.changes = {
         pos: 0,
-        stack: [ [file.content, '0,0'] ]
+        stack: [ [file.content, '0,0;0,0'] ]
       }
     }
 
-    this.ignoreFirst = true;
-    // храним откуда начали просматривать файл для того чтобы
-    // когда пойдем к этому изменению оставлять курсор там же где он был, а не кидать в начало
-    this.firstPos = file.changes.pos;
     this.activeFile = file;
   }
 
-  addToHistory(value, cursor) {
+  addToHistory(value, cursors) {
     if (!this.activeFile) {
       return;
     }
 
-    if (this.ignoreFirst) {
-      this.ignoreFirst = false;
+    const cursorString = isString(cursors) ? cursors : `${cursors.from.line},${cursors.from.ch};${cursors.to.line},${cursors.to.ch}`;
+
+    // если дупликат значения, то просто обновляем курсор последнего, но не добавляем новый
+    if (this.activeFile.changes.stack.length && value === last(this.activeFile.changes.stack)[0]) {
       return;
     }
 
@@ -235,7 +250,7 @@ class Chronicle {
       this.activeFile.changes.stack.shift();
     }
 
-    this.activeFile.changes.pos = this.activeFile.changes.stack.push([value, `${cursor.line},${cursor.ch}`]) - 1;
+    this.activeFile.changes.pos = this.activeFile.changes.stack.push([value, cursorString]) - 1;
   }
 
   undo() {
@@ -243,8 +258,10 @@ class Chronicle {
       return;
     }
 
+    const current = this.activeFile.changes.stack[this.activeFile.changes.pos];
+
     this.activeFile.changes.pos--;
-    this.setContent();
+    this.setContent('undo', current);
   }
 
   redo() {
@@ -253,13 +270,14 @@ class Chronicle {
     }
 
     this.activeFile.changes.pos++;
-    this.setContent();
+    this.setContent('redo');
   }
 
   onChange(callback) {
     this.callback = callback;
   }
 
+  // предотавращаем изменения поле редактора (после обновления поле редактора)
   preventEditorChange() {
     if (this.preventEditor) {
       this.preventEditor = false;
@@ -269,20 +287,23 @@ class Chronicle {
     }
   }
 
-  private setContent() {
+  private setContent(type, current?) {
     this.activeFile.content = this.activeFile.changes.stack[this.activeFile.changes.pos][0];
     this.preventEditor = true;
 
     let cursor;
 
-    if (this.activeFile.changes.pos === this.firstPos) {
-      cursor = null;
+    if (type === 'undo' && current) {
+      const cursors = current[1].split(';');
+      cursor = cursors[0].split(',');
     } else {
-      cursor = this.activeFile.changes.stack[this.activeFile.changes.pos][1].split(',');
-      cursor = {
-        line: cursor[0],
-        ch: cursor[1]
-      }
+      const cursors = this.activeFile.changes.stack[this.activeFile.changes.pos][1].split(';');
+      cursor = cursors[1].split(',');
+    }
+
+    cursor = {
+      line: cursor[0],
+      ch: cursor[1]
     }
 
     this.callback(cursor);
