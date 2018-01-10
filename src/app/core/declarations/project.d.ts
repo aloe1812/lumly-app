@@ -11,7 +11,11 @@ export class FilePristine {
   title: string;
   type: string;
   content: string;
-  files: FilePristine[]
+  files: FilePristine[];
+  changes?: {
+    pos: number;
+    stack: string[];
+  }
 }
 
 export class Project extends ProjectPristine {

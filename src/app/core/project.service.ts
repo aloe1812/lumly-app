@@ -214,6 +214,10 @@ export class ProjectService {
           file.files = cloneFiles(fileItem.files);
         }
 
+        if (fileItem.changes) {
+          file.changes = fileItem.changes
+        }
+
         filesClone.push(file);
       });
 
