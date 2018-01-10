@@ -103,10 +103,26 @@ const topMenuTemplate: any = [
     label: 'Edit',
     submenu: [
       {
-        role: 'undo'
+        label: 'Undo',
+        click: (item, focusedWindow) => {
+          focusedWindow.webContents.sendInputEvent({
+            type: 'keyDown',
+            modifiers: process.platform === 'darwin' ? ['meta'] : ['control'],
+            keyCode: 'Z'
+          });
+        },
+        accelerator: 'CmdOrCtrl+Z'
       },
       {
-        role: 'redo'
+        label: 'Redo',
+        click: (item, focusedWindow) => {
+          focusedWindow.webContents.sendInputEvent({
+            type: 'keyDown',
+            modifiers: process.platform === 'darwin' ? ['shift', 'meta'] : ['shift', 'control'],
+            keyCode: 'Z'
+          });
+        },
+        accelerator: 'Shift+CmdOrCtrl+Z'
       },
       {
         type: 'separator'
