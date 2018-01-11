@@ -27,6 +27,8 @@ export class ProjectService {
   onProjectOpen = new BehaviorSubject(<any>{pending: true});
   onProjectSaved = new Subject();
 
+  private closeAfterSave: boolean | string = false;
+
   constructor(
     private store: StoreService,
     private title: Title
@@ -131,9 +133,7 @@ export class ProjectService {
 
     this.project = project;
 
-    const eventData: any = {
-      windowId: remote.getCurrentWindow().id
-    };
+    const eventData: any = {};
 
     if (project.project.path) {
       eventData.projectPath = project.project.path;
@@ -280,15 +280,22 @@ export class ProjectService {
       if (evData && evData.path) { // был сохранен как
         this.project.project.path = evData.path;
         ipcRenderer.send('set-window-project-active', {
-          windowId: remote.getCurrentWindow().id,
           projectPath: this.project.project.path
         });
         this.setWindowTitle();
       }
 
       this.onProjectSaved.next();
-
       this.updateProjectAfterSave();
+
+      if (this.closeAfterSave) {
+        if (this.closeAfterSave === 'project') {
+          this.closeProject();
+          this.closeAfterSave = false;
+        } else {
+          remote.getCurrentWindow().close();
+        }
+      }
     });
 
     ipcRenderer.on('project-save:error', (ev, evData) => {
@@ -312,10 +319,13 @@ export class ProjectService {
   }
 
   private subscribeToTriggerEvents() {
-    ipcRenderer.on('trigger-project-save', () => {
+    ipcRenderer.on('trigger-project-save', (ev, data) => {
+      this.closeAfterSave = !!data && data.closeAfterSave;
+
       if (!this.project) {
         return;
       }
+
       this.saveProject();
     });
 
@@ -326,19 +336,9 @@ export class ProjectService {
       this.saveProject(true);
     });
 
-    ipcRenderer.on('trigger-project-close', () => {
-      if (this.project) {
-        this.onProjectOpen.next(false);
-        ipcRenderer.send('set-window-project-active', {
-          windowId: remote.getCurrentWindow().id,
-          clearProject: true
-        });
-        this.project = null;
-        this.setWindowTitle();
-        this.store.data('JSON-UML').set(null);
-      } else {
-        remote.getCurrentWindow().close();
-      }
+    ipcRenderer.on('trigger-project-close', (ev, data) => {
+      const ignoreChanges = !!(data && data.ignoreChanges);
+      this.closeProject(ignoreChanges);
     });
 
     ipcRenderer.on('trigger-add', (ev, type) => {
@@ -351,6 +351,22 @@ export class ProjectService {
           return;
       }
     });
+  }
+
+  private closeProject(ignoreChanges = false) {
+    // есть изменения => запуская alert что не сохранили изменения
+    // но также можем и проигнорировать проверку (это если в алерте выбрали пункт Don't Save)
+    if (!ignoreChanges && this.project.project.hasChanges) {
+      ipcRenderer.send('unsaved-alert');
+    } else if (this.project) { // если есть проект => то переходим на начальный экран
+      this.onProjectOpen.next(false);
+      ipcRenderer.send('set-window-project-active', {clearProject: true});
+      this.project = null;
+      this.setWindowTitle();
+      this.store.data('JSON-UML').set(null);
+    } else {
+      remote.getCurrentWindow().close();
+    }
   }
 
 }

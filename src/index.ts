@@ -1,7 +1,7 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
 import { recents } from './electron/store';
-import { getWindowBounds } from './electron/utils';
+import { getWindowBounds, parseProjectFile, showSureCloseDialog } from './electron/utils';
 import * as log from 'electron-log';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -71,9 +71,27 @@ function createWindow(data?) {
 
     win = null;
   });
+
+  // отлавливаем событие незакрытия окна
+  win.webContents.on('will-prevent-unload', (event) => {
+    if (BrowserWindow.getAllWindows().length > 1) { // если окон много => то предупреждаем, что могу не сохраниться измнения
+      const { isClose, isSave } = showSureCloseDialog(win);
+
+      if (isClose) {
+        event.preventDefault();
+      } else if (isSave) {
+        win.webContents.send('trigger-project-save', {
+          closeAfterSave: true
+        });
+      }
+
+    } else { // если окно одно то ничего не показываем, так как это окно будет сохранено в store
+      event.preventDefault();
+    }
+  });
 }
 
-// Как только приложение закончило загружаться, подписываемся на открыть событие открыть файл
+// Как только приложение закончило загружаться, подписываемся на событие "открыть файл"
 app.on('will-finish-launching', () => {
   app.on('open-file', (event, filePath) => {
     event.preventDefault();
@@ -127,6 +145,16 @@ app.on('browser-window-created', function (event, win) {
   });
 });
 
+// перед закрытием предоствращаем незактие окон (так как они в дальнейшем будут сохранены в store)
+app.on('before-quit', () => {
+  _.forEach(BrowserWindow.getAllWindows(), (win) => {
+    win.webContents.removeAllListeners('will-prevent-unload');
+    win.webContents.on('will-prevent-unload', (event) => {
+      event.preventDefault();
+    });
+  });
+});
+
 ipcMain.on('show-context-menu', (event, params) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   contextMenu.popup(win);
@@ -171,7 +199,7 @@ topMenuEvents.on('new-project', () => {
 
 // указываем что у окна есть активный проект (либо новый, либо путь)
 ipcMain.on('set-window-project-active', (event, data) => {
-  const window = BrowserWindow.fromId(data.windowId);
+  const window = BrowserWindow.fromWebContents(event.sender.webContents);
 
   if (data.clearProject) {
     delete (<any>window).customWindowData.isProjectNew;
@@ -192,6 +220,23 @@ ipcMain.on('open-project-file-dialog', (event, data) => {
 
 ipcMain.on('open-project-file', (ev, data) => {
   openProjectByPath(ev.sender, data.path, data.origin);
+});
+
+// если проект закрывают через меню, то показываем алерт и потом передаем данные в окно (и там уже будет закрыто окно)
+ipcMain.on('unsaved-alert', (ev, data) => {
+  const win = BrowserWindow.fromWebContents(ev.sender.webContents);
+
+  const { isClose, isSave } = showSureCloseDialog(win);
+
+  if (isClose) {
+    win.webContents.send('trigger-project-close', {
+      ignoreChanges: true
+    });
+  } else if (isSave) {
+    win.webContents.send('trigger-project-save', {
+      closeAfterSave: 'project'
+    });
+  }
 });
 
 function openProjectFromDialog(sender, origin) {
@@ -270,42 +315,6 @@ function openProjectByPath(sender, filePath, origin) {
   });
 }
 
-function parseProjectFile(fileContents) {
-
-  try {
-    const project = JSON.parse(fileContents);
-
-    if (!isProjectFileValid(project)) {
-      throw Error;
-    }
-
-    return project;
-  } catch (e) {
-    return null;
-  }
-
-  function isProjectFileValid(project) {
-    if (!( _.has(project, 'project') &&
-           _.has(project, 'content') &&
-           _.has(project, 'project.title') &&
-           _.has(project, 'content.files')
-    )) {
-      return false;
-    }
-
-    if (!_.isString(project.project.title)) {
-      return false;
-    }
-
-    if (!_.isArray(project.content.files)) {
-      return false;
-    }
-
-    return true;
-  }
-
-}
-
 function showWindowIfPathAlreadyOpen(filePath): boolean {
 
   if (windows.length) {
@@ -328,7 +337,6 @@ function showWindowIfPathAlreadyOpen(filePath): boolean {
     return false;
   }
 }
-
 
 /*********** Сохранение проекта ***************/
 
