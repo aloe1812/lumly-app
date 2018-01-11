@@ -1,14 +1,14 @@
 <div class="left">
-  <button>
+  <button (click)="zoomToFit()">
     <svg-icon icon="hunt"></svg-icon>
   </button>
 </div>
 <div class="center zoom">
-  <button>
+  <button (click)="zoomOut()">
     <svg-icon icon="zoom-out"></svg-icon>
   </button>
-  <div>100%</div>
-  <button>
+  <!-- <div>100%</div> -->
+  <button (click)="zoomIn()">
     <svg-icon icon="zoom-in"></svg-icon>
   </button>
 </div>

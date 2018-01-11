@@ -364,6 +364,7 @@ export class ResizeService {
   private updateDiagram() {
     if (this.uml && this.uml.diagram) {
       this.uml.diagram.update();
+      this.uml.diagram.zoomToFit();
     }
   }
 
