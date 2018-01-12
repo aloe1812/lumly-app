@@ -54,9 +54,9 @@ export class FileComponent implements OnInit {
       this.sortFiles();
     }
 
-    if (this.file._immediateSelect) {
+    if (this.file._immediateSelect || this.file.isSelected) {
       delete this.file._immediateSelect;
-      this.select();
+      this.select(true);
     }
 
     if (this.file._checkPosition) {
@@ -136,8 +136,8 @@ export class FileComponent implements OnInit {
     this.file.isToggled = !this.file.isToggled;
   }
 
-  private select() {
-    if (this.file.isSelected) {
+  private select(force = false) {
+    if (!force && this.file.isSelected) {
       return;
     }
 

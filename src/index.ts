@@ -1,7 +1,8 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
-import { recents } from './electron/store';
-import { getWindowBounds } from './electron/utils';
+import { recents, store } from './electron/store';
+import { getWindowBounds, parseProjectFile, showSureCloseDialog } from './electron/utils';
+import { AppState } from './electron/state';
 import * as log from 'electron-log';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -31,7 +32,17 @@ const dataForWindow = {
 // Функция для создания окна приложения
 function createWindow(data?) {
 
-  const bounds = getWindowBounds();
+  let prevBounds = null
+
+  if (data && data.bounds) {
+    prevBounds = data.bounds;
+  }
+
+  const bounds = getWindowBounds(prevBounds);
+
+  if (prevBounds) {
+    delete data.bounds;
+  }
 
   dataForWindow.recentFiles = recents.get();
 
@@ -71,9 +82,35 @@ function createWindow(data?) {
 
     win = null;
   });
+
+  // отлавливаем событие незакрытия окна (случается если есть несохраненные изменения)
+  win.webContents.on('will-prevent-unload', (event) => {
+    if (BrowserWindow.getAllWindows().length > 1) { // если окон много => то предупреждаем, что могу не сохраниться измнения
+      const { isClose, isSave } = showSureCloseDialog(win);
+
+      if (isClose) {
+        event.preventDefault();
+      } else if (isSave) {
+        win.webContents.send('trigger-project-save', {
+          closeAfterSave: true
+        });
+      }
+
+    } else { // если окно одно то ничего не показываем, так как это окно будет сохранено в store
+      event.preventDefault();
+    }
+  });
+
+  // Если окно одно и мы его закрываем => сохраняем состояние окна
+  win.on('close', (event) => {
+    if (BrowserWindow.getAllWindows().length === 1) {
+      event.preventDefault();
+      AppState.saveState();
+    }
+  });
 }
 
-// Как только приложение закончило загружаться, подписываемся на открыть событие открыть файл
+// Как только приложение закончило загружаться, подписываемся на событие "открыть файл"
 app.on('will-finish-launching', () => {
   app.on('open-file', (event, filePath) => {
     event.preventDefault();
@@ -94,8 +131,9 @@ app.on('will-finish-launching', () => {
 app.on('ready', () => {
   if (openedFromPath) {
     createWindow({path: openedFromPath});
+    AppState.restore(createWindow, true);
   } else {
-    createWindow();
+    AppState.restore(createWindow);
   }
 });
 
@@ -112,9 +150,18 @@ app.on('activate', function () {
   }
 });
 
-// Сохраняем список недавних в файл
+// Перед закрытием приложения сохраняем его состояние
+app.on('before-quit', (event) => {
+  if (!AppState.isSaved) {
+    event.preventDefault();
+    AppState.saveState();
+  }
+});
+
+// Сохраняем список недавних + Сохраняем все данные в файл
 app.on('quit', () => {
   recents.saveToStore();
+  store.save();
 });
 
 // Показываем контекстное меню
@@ -171,7 +218,7 @@ topMenuEvents.on('new-project', () => {
 
 // указываем что у окна есть активный проект (либо новый, либо путь)
 ipcMain.on('set-window-project-active', (event, data) => {
-  const window = BrowserWindow.fromId(data.windowId);
+  const window = BrowserWindow.fromWebContents(event.sender.webContents);
 
   if (data.clearProject) {
     delete (<any>window).customWindowData.isProjectNew;
@@ -192,6 +239,23 @@ ipcMain.on('open-project-file-dialog', (event, data) => {
 
 ipcMain.on('open-project-file', (ev, data) => {
   openProjectByPath(ev.sender, data.path, data.origin);
+});
+
+// если проект закрывают через меню, то показываем алерт и потом передаем данные в окно (и там уже будет закрыто окно)
+ipcMain.on('unsaved-alert', (ev, data) => {
+  const win = BrowserWindow.fromWebContents(ev.sender.webContents);
+
+  const { isClose, isSave } = showSureCloseDialog(win);
+
+  if (isClose) {
+    win.webContents.send('trigger-project-close', {
+      ignoreChanges: true
+    });
+  } else if (isSave) {
+    win.webContents.send('trigger-project-save', {
+      closeAfterSave: 'project'
+    });
+  }
 });
 
 function openProjectFromDialog(sender, origin) {
@@ -270,42 +334,6 @@ function openProjectByPath(sender, filePath, origin) {
   });
 }
 
-function parseProjectFile(fileContents) {
-
-  try {
-    const project = JSON.parse(fileContents);
-
-    if (!isProjectFileValid(project)) {
-      throw Error;
-    }
-
-    return project;
-  } catch (e) {
-    return null;
-  }
-
-  function isProjectFileValid(project) {
-    if (!( _.has(project, 'project') &&
-           _.has(project, 'content') &&
-           _.has(project, 'project.title') &&
-           _.has(project, 'content.files')
-    )) {
-      return false;
-    }
-
-    if (!_.isString(project.project.title)) {
-      return false;
-    }
-
-    if (!_.isArray(project.content.files)) {
-      return false;
-    }
-
-    return true;
-  }
-
-}
-
 function showWindowIfPathAlreadyOpen(filePath): boolean {
 
   if (windows.length) {
@@ -328,7 +356,6 @@ function showWindowIfPathAlreadyOpen(filePath): boolean {
     return false;
   }
 }
-
 
 /*********** Сохранение проекта ***************/
 

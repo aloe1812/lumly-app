@@ -28,6 +28,7 @@ export class ProjectStatusComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes) {
     this.setStatus();
+    this.preventWinCloseIfChanges();
   }
 
   ngOnDestroy() {
@@ -58,6 +59,18 @@ export class ProjectStatusComponent implements OnInit, OnChanges, OnDestroy {
       this.statusText = 'Unsaved changes';
     } else {
       this.statusText = '';
+    }
+  }
+
+  // если в проекте есть изменения => то предотвращаем закрытия окна
+  // обрабатываться событие незакрытия будет в main process
+  private preventWinCloseIfChanges() {
+    if (this.hasChanges) {
+      window.onbeforeunload = () => {
+        return true;
+      }
+    } else {
+      window.onbeforeunload = null;
     }
   }
 

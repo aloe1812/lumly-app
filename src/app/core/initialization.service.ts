@@ -10,7 +10,7 @@ export class InitializationService {
 
   constructor(
     private projectService: ProjectService
-  ) { }
+  ) {}
 
   // Перед загрузкой приложения берем загружаем данные о недавних файлах
   initApp() {
