@@ -316,6 +316,13 @@ export class ProjectService {
         this.recentProjects = evData.recentFiles;
       }
     });
+
+    ipcRenderer.on('get-project', () => {
+      window.onbeforeunload = null;
+      ipcRenderer.send('got-project', {
+        project: this.project
+      });
+    });
   }
 
   private subscribeToTriggerEvents() {

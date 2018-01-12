@@ -1,7 +1,8 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
-import { recents } from './electron/store';
+import { recents, store } from './electron/store';
 import { getWindowBounds, parseProjectFile, showSureCloseDialog } from './electron/utils';
+import { AppState } from './electron/state';
 import * as log from 'electron-log';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -72,7 +73,7 @@ function createWindow(data?) {
     win = null;
   });
 
-  // отлавливаем событие незакрытия окна
+  // отлавливаем событие незакрытия окна (случается если есть несохраненные изменения)
   win.webContents.on('will-prevent-unload', (event) => {
     if (BrowserWindow.getAllWindows().length > 1) { // если окон много => то предупреждаем, что могу не сохраниться измнения
       const { isClose, isSave } = showSureCloseDialog(win);
@@ -87,6 +88,14 @@ function createWindow(data?) {
 
     } else { // если окно одно то ничего не показываем, так как это окно будет сохранено в store
       event.preventDefault();
+    }
+  });
+
+  // Если окно одно и мы его закрываем => сохраняем состояние окна
+  win.on('close', (event) => {
+    if (BrowserWindow.getAllWindows().length === 1) {
+      event.preventDefault();
+      AppState.saveState();
     }
   });
 }
@@ -130,9 +139,10 @@ app.on('activate', function () {
   }
 });
 
-// Сохраняем список недавних в файл
+// Сохраняем список недавних + Сохраняем все данные в файл
 app.on('quit', () => {
   recents.saveToStore();
+  store.save();
 });
 
 // Показываем контекстное меню
@@ -145,14 +155,9 @@ app.on('browser-window-created', function (event, win) {
   });
 });
 
-// перед закрытием предоствращаем незактие окон (так как они в дальнейшем будут сохранены в store)
-app.on('before-quit', () => {
-  _.forEach(BrowserWindow.getAllWindows(), (win) => {
-    win.webContents.removeAllListeners('will-prevent-unload');
-    win.webContents.on('will-prevent-unload', (event) => {
-      event.preventDefault();
-    });
-  });
+// Перед закрытием приложения сохраняем его состояние
+app.on('before-quit', (event) => {
+  AppState.saveState();
 });
 
 ipcMain.on('show-context-menu', (event, params) => {
