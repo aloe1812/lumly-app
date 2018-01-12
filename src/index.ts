@@ -32,7 +32,17 @@ const dataForWindow = {
 // Функция для создания окна приложения
 function createWindow(data?) {
 
-  const bounds = getWindowBounds();
+  let prevBounds = null
+
+  if (data && data.bounds) {
+    prevBounds = data.bounds;
+  }
+
+  const bounds = getWindowBounds(prevBounds);
+
+  if (prevBounds) {
+    delete data.bounds;
+  }
 
   dataForWindow.recentFiles = recents.get();
 

@@ -35,8 +35,11 @@ class AppStateClass {
   }
 
   restore(createWindow, hasOpenFromPath = false) {
-    _.forEach(this.storedProjects, project => {
-      createWindow({projectData: JSON.stringify(project)});
+    _.forEach(this.storedProjects, data => {
+      createWindow({
+        projectData: JSON.stringify(data.project),
+        bounds: data.bounds
+      });
     });
 
     if (hasOpenFromPath) {
@@ -71,7 +74,19 @@ class AppStateClass {
       this.projectsCount--;
 
       if (data.project) {
-        this.projectsToStore.push(data.project)
+        const win = BrowserWindow.fromWebContents(ev.sender.webContents);
+        const position = win.getPosition();
+        const size = win.getSize();
+
+        this.projectsToStore.push({
+          project: data.project,
+          bounds: {
+            x: position[0],
+            y: position[1],
+            width: size[0],
+            height: size[1]
+          }
+        })
       }
 
       // информация от всех окон пришла => закрываем приложение

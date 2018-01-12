@@ -8,14 +8,24 @@ const DEFAULT_SIZES = {
   minHeight: 300
 };
 
-export function getWindowBounds() {
-  const displayWorkArea = screen.getPrimaryDisplay().workArea;
+export function getWindowBounds(bounds?) {
 
-  const width = DEFAULT_SIZES.width > displayWorkArea.width ? displayWorkArea.width : DEFAULT_SIZES.width;
-  const height = DEFAULT_SIZES.height > displayWorkArea.height ? displayWorkArea.height : DEFAULT_SIZES.height;
+  let x, y, width, height;
 
-  const x = displayWorkArea.x + ((displayWorkArea.width - width) / 2);
-  const y = displayWorkArea.y + ((displayWorkArea.height - height) / 2);
+  if (bounds) {
+    x = bounds.x;
+    y = bounds.y;
+    width = bounds.width,
+    height = bounds.height;
+  } else {
+    const displayWorkArea = screen.getPrimaryDisplay().workArea;
+
+    width = DEFAULT_SIZES.width > displayWorkArea.width ? displayWorkArea.width : DEFAULT_SIZES.width;
+    height = DEFAULT_SIZES.height > displayWorkArea.height ? displayWorkArea.height : DEFAULT_SIZES.height;
+
+    x = displayWorkArea.x + ((displayWorkArea.width - width) / 2);
+    y = displayWorkArea.y + ((displayWorkArea.height - height) / 2);
+  }
 
   return {
     width,
