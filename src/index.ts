@@ -121,8 +121,9 @@ app.on('will-finish-launching', () => {
 app.on('ready', () => {
   if (openedFromPath) {
     createWindow({path: openedFromPath});
+    AppState.restore(createWindow, true);
   } else {
-    createWindow();
+    AppState.restore(createWindow);
   }
 });
 
@@ -136,6 +137,14 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if (!windows.length) {
     createWindow();
+  }
+});
+
+// Перед закрытием приложения сохраняем его состояние
+app.on('before-quit', (event) => {
+  if (!AppState.isSaved) {
+    event.preventDefault();
+    AppState.saveState();
   }
 });
 
@@ -153,11 +162,6 @@ app.on('browser-window-created', function (event, win) {
       y: params.y
     });
   });
-});
-
-// Перед закрытием приложения сохраняем его состояние
-app.on('before-quit', (event) => {
-  AppState.saveState();
 });
 
 ipcMain.on('show-context-menu', (event, params) => {

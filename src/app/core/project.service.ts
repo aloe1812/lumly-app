@@ -38,6 +38,10 @@ export class ProjectService {
   }
 
   prepareProject(project: Project, isNew = false, path?: string) {
+    if (project.isPrepared) {
+      return;
+    }
+
     if (isNew) {
       project.project.changes = {
         'PROJECT_SELF': {
@@ -52,6 +56,7 @@ export class ProjectService {
       project.project.path = path;
     }
 
+    project.isPrepared = true;
     project.project.guidCounter = 0;
     project.project.originalTitle = project.project.title;
 

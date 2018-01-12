@@ -326,6 +326,10 @@ recents.onUpdate(() => {
 })
 
 function updateTopMenu(focusedWindow) {
+  if (!focusedWindow) {
+    return;
+  }
+
   const menuIndex = process.platform === 'darwin' ? 1 : 0;
 
   const { isActive, hasPath } = getProjectStatus(focusedWindow);

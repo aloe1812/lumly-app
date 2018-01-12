@@ -19,6 +19,7 @@ export class FilePristine {
 }
 
 export class Project extends ProjectPristine {
+  isPrepared?: boolean;
   project: {
     title: string;
     originalTitle?: string;

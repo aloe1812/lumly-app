@@ -8,10 +8,13 @@ class AppStateClass {
   isSaved = false;
   isSaving = false;
 
+  private storedProjects = [];
+
   private projectsCount;
   private projectsToStore = [];
 
   constructor() {
+    this.storedProjects = store.get('openProjects', []);
     this.subToEvents();
   }
 
@@ -29,6 +32,18 @@ class AppStateClass {
     _.forEach(allWindows, (win) => {
       this.getWindowData(win);
     });
+  }
+
+  restore(createWindow, hasOpenFromPath = false) {
+    _.forEach(this.storedProjects, project => {
+      createWindow({projectData: JSON.stringify(project)});
+    });
+
+    if (hasOpenFromPath) {
+      return;
+    } else if (!this.storedProjects.length) {
+      createWindow();
+    }
   }
 
   private getWindowData(win) {
