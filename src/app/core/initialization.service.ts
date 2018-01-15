@@ -17,8 +17,7 @@ export class InitializationService {
     return new Promise(resolve => {
       const windowData = (<any>this.currentWindow).customWindowData;
 
-      document.body.classList.add(windowData.platform);
-      this.projectService.recentProjects = windowData.recentFiles;
+      document.body.classList.add(remote.process.platform);
 
       if (windowData.path) {
         this.projectService.openProjectFromPath(windowData.path, 'file');

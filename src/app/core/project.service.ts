@@ -10,6 +10,8 @@ import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
 import * as isArray from 'lodash/isArray';
 
+const recents = remote.require('./electron/store').recents;
+
 const FILE_ERRORS = {
   ext: `Error: File extension is incorrect. Must be 'lumly'`,
   invalid: 'Error: Provided file is incorrect or damaged',
@@ -34,6 +36,12 @@ export class ProjectService {
     private store: StoreService,
     private title: Title
   ) {
+    this.recentProjects = recents.get();
+
+    recents.onUpdate(items => {
+      this.recentProjects.splice(0, this.recentProjects.length, ...items);
+    }, remote.getCurrentWindow().id);
+
     this.subscribeToEvents();
     this.subscribeToTriggerEvents();
   }
@@ -267,11 +275,6 @@ export class ProjectService {
     });
 
     ipcRenderer.on('open-project-file:error', (ev, evData) => {
-
-      if (evData.recentFiles) {
-        this.recentProjects.splice(0, this.recentProjects.length, ...evData.recentFiles);
-      }
-
       const errorData: any = {
         tryOpen: true,
         success: false,
@@ -315,14 +318,6 @@ export class ProjectService {
           file: evData.file,
           fileName: evData.fileName || evData.file.project.title
         });
-      }
-    });
-
-    ipcRenderer.on('update-recent', (ev, evData) => {
-      if (isArray(this.recentProjects)) {
-        this.recentProjects.splice(0, this.recentProjects.length, ...evData.recentFiles);
-      } else {
-        this.recentProjects = evData.recentFiles;
       }
     });
 

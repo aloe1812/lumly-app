@@ -23,12 +23,6 @@ if (serve) {
 // автоматически, когда сборщик мусора удалит объект
 const windows = [];
 
-// Различного рода перемененные
-const dataForWindow = {
-  platform: process.platform,
-  recentFiles: []
-}
-
 // Функция для создания окна приложения
 function createWindow(data?) {
 
@@ -43,8 +37,6 @@ function createWindow(data?) {
   if (prevBounds) {
     delete data.bounds;
   }
-
-  dataForWindow.recentFiles = recents.get();
 
   let win = new BrowserWindow({
     title: 'lumly',
@@ -62,7 +54,7 @@ function createWindow(data?) {
 
   windows.push(win);
 
-  (<any>win).customWindowData = Object.assign({}, dataForWindow, data);
+  (<any>win).customWindowData = Object.assign({ windowId: win.id }, data);
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/index.html`);
@@ -73,7 +65,9 @@ function createWindow(data?) {
   }
 
   // Если закрыли окно, очишаем его и удаляем из массива
-  win.on('closed', function () {
+  win.on('closed', (event) => {
+    recents.removeCallback(event.sender.customWindowData.windowId);
+
     const winIndex = windows.indexOf(win);
 
     if (winIndex !== -1) {
@@ -300,10 +294,9 @@ function openProjectByPath(sender, filePath, origin) {
     if (err) {
       if (origin === 'window-recent' || origin === 'menu-recent') {
         recents.remove(filePath);
-        sender.webContents.send('open-project-file:error', {type: 'general', origin, recentFiles: recents.get()});
-      } else {
-        sender.webContents.send('open-project-file:error', {type: 'general', origin});
       }
+
+      sender.webContents.send('open-project-file:error', {type: 'general', origin});
 
       return;
     }
