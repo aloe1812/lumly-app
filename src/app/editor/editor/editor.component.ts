@@ -111,6 +111,8 @@ export class EditorComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(file => {
 
+        this.editor.getInputField().blur();
+
         this.chronicle.setFile(file);
 
         if ( !has(file, 'originalContent') ) {
