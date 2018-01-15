@@ -1,12 +1,14 @@
 import { Menu, app, BrowserWindow, ipcMain } from 'electron';
 import { store } from './store';
 import * as _ from 'lodash';
+import * as log from 'electron-log';
 
 // Класс который получает/сохраняет состояние приложения (открыте проекты) после открытия/закрытия
 class AppStateClass {
 
   isSaved = false;
   isSaving = false;
+  hasStored = false;
 
   private storedProjects = [];
 
@@ -15,6 +17,7 @@ class AppStateClass {
 
   constructor() {
     this.storedProjects = store.get('openProjects', []);
+    this.hasStored = !!this.storedProjects.length;
     this.subToEvents();
   }
 
@@ -47,6 +50,17 @@ class AppStateClass {
     } else if (!this.storedProjects.length) {
       createWindow();
     }
+  }
+
+  isPathStored(filePath) {
+    let isStored = false;
+    _.forEach(this.storedProjects, item => {
+      if (item.project.project.path === filePath) {
+        isStored = true;
+        return false;
+      }
+    });
+    return isStored;
   }
 
   private getWindowData(win) {

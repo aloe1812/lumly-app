@@ -1,7 +1,7 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
 import { recents, store } from './electron/store';
-import { getWindowBounds, parseProjectFile, showSureCloseDialog } from './electron/utils';
+import { getWindowBounds, parseProjectFile, showSureCloseDialog, showWindowIfPathAleradyExists } from './electron/utils';
 import { AppState } from './electron/state';
 import * as log from 'electron-log';
 import * as path from 'path';
@@ -109,11 +109,15 @@ app.on('will-finish-launching', () => {
   app.on('open-file', (event, filePath) => {
     event.preventDefault();
 
-    if (windows.length) {
-      if (!showWindowIfPathAlreadyOpen(filePath)) {
+    if (windows.length) { // если есть окна, то проверяем в открытых окнах
+      if (!showWindowIfPathAleradyExists(filePath)) {
         createWindow({path: filePath});
       }
-    } else {
+    } else if (AppState.hasStored) { // окон нету (приложение загружается) => проверяем в сохраненных проектах
+      if (!AppState.isPathStored(filePath)) {
+        openedFromPath = filePath;
+      }
+    } else { // ничего нету => то просто откроем
       openedFromPath = filePath;
     }
   });
@@ -286,7 +290,7 @@ function openProjectByPath(sender, filePath, origin) {
 
   // проверяем, есть ли уже окно с таким путем
   // не проверяем если открыто через файл, так как в этом случае, мы уже это проверили в событии 'open-file' выше
-  if (origin !== 'file' && showWindowIfPathAlreadyOpen(filePath)) {
+  if (origin !== 'file' && showWindowIfPathAleradyExists(filePath)) {
     return;
   }
 
@@ -325,29 +329,6 @@ function openProjectByPath(sender, filePath, origin) {
       });
     }
   });
-}
-
-function showWindowIfPathAlreadyOpen(filePath): boolean {
-
-  if (windows.length) {
-    let isWindowFound = false;
-
-    _.forEach(windows, window => {
-      if (
-        (<any>window).customWindowData &&
-        (<any>window).customWindowData.projectPath &&
-        (<any>window).customWindowData.projectPath === filePath
-      ) {
-        window.show();
-        isWindowFound = true;
-        return false;
-      }
-    });
-
-    return isWindowFound;
-  } else {
-    return false;
-  }
 }
 
 /*********** Сохранение проекта ***************/
