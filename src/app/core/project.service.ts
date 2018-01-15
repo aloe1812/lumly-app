@@ -27,6 +27,7 @@ export class ProjectService {
   onProjectOpen = new BehaviorSubject(<any>{pending: true});
   onProjectSaved = new Subject();
 
+  private editorComponent;
   private closeAfterSave: boolean | string = false;
 
   constructor(
@@ -35,6 +36,10 @@ export class ProjectService {
   ) {
     this.subscribeToEvents();
     this.subscribeToTriggerEvents();
+  }
+
+  setEditorComponent(componentRef) {
+    this.editorComponent = componentRef;
   }
 
   prepareProject(project: Project, isNew = false, path?: string) {
@@ -154,7 +159,6 @@ export class ProjectService {
   }
 
   saveProject(isSaveAs = false) {
-
     if (!isSaveAs && !this.project.project.hasChanges) {
       return;
     }
@@ -219,8 +223,8 @@ export class ProjectService {
           file.files = cloneFiles(fileItem.files);
         }
 
-        if (fileItem.changes) {
-          file.changes = fileItem.changes
+        if (fileItem.history) {
+          file.history = fileItem.history;
         }
 
         filesClone.push(file);
@@ -324,6 +328,11 @@ export class ProjectService {
 
     ipcRenderer.on('get-project', () => {
       window.onbeforeunload = null;
+
+      if (this.editorComponent) {
+        this.editorComponent.saveActiveFileHistory();
+      }
+
       ipcRenderer.send('got-project', {
         project: this.project
       });
