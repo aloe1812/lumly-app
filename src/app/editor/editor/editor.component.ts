@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 import { ResizeService } from 'app/core/resize.service';
@@ -35,23 +35,8 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   isCodeReviewing = false;
 
-  private fromCursor;
-
-  private chronicle = new Chronicle();
   private codeTerms = new Subject<string>();
   private ngUnsubscribe: Subject<void> = new Subject<void>();
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeyEvent($event: KeyboardEvent) {
-    if ( ($event.metaKey || $event.ctrlKey) && $event.keyCode === 90) {
-      $event.preventDefault();
-      if ($event.shiftKey) {
-        this.chronicle.redo();
-      } else {
-        this.chronicle.undo();
-      }
-    }
-  }
 
   constructor(
     private store: StoreService,
@@ -75,33 +60,28 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.ngUnsubscribe.complete();
   }
 
+  saveActiveFileHistory() {
+    if (!this.activeFile) {
+      return;
+    }
+    const doc = this.editor.getDoc();
+    this.activeFile.history = doc.getHistory();
+  }
+
   private initEditor() {
-    // Убираем горячие клавиши у editor
-    forEach(['Cmd-Z', 'Cmd-Y', 'Shift-Cmd-Z'], (key) => {
-      CodeMirror.keyMap.default[key] = false;
-    });
+    this.projectService.setEditorComponent(this);
 
     this.editor = CodeMirror.fromTextArea(this.textarea.nativeElement, {
       lineNumbers: true,
       gutters: ['CodeMirror-lint-markers', 'CodeMirror-linenumbers'],
-      tabSize: 2
+      tabSize: 2,
+      historyEventDelay: 450
     });
 
     this.generationService.setEditor(this.editor);
     this.resizeService.setEditor(this.editor);
 
-    this.editor.on('beforeChange', () => {
-      if (!this.fromCursor) {
-        this.fromCursor = this.editor.getCursor();
-      }
-    });
-
     this.editor.on('change', (codemirror) => {
-      if (this.chronicle.preventEditorChange()) {
-        this.fromCursor = null;
-        return;
-      }
-
       this.codeTerms.next(codemirror.getValue());
     });
   }
@@ -111,7 +91,18 @@ export class EditorComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(file => {
 
-        this.chronicle.setFile(file);
+        this.editor.getInputField().blur();
+        this.saveActiveFileHistory();
+
+        // устанавливаем новый doc для файла
+        const newDoc = CodeMirror.Doc(file.content);
+
+        if (file.history) {
+          newDoc.clearHistory();
+          newDoc.setHistory(file.history);
+        }
+
+        this.editor.swapDoc(newDoc);
 
         if ( !has(file, 'originalContent') ) {
           file.originalContent = file.content;
@@ -121,50 +112,18 @@ export class EditorComponent implements OnInit, OnDestroy {
 
         this.activeFile = file;
 
-        this.chronicle.addToHistory(file.content, '0,0:0,0');
-
         this.editor.setValue(file.content);
       });
   }
 
   private subscribeToCodeChange() {
-    // изменения через редактор
-    this.codeTerms.debounceTime(450)
+    this.codeTerms
+      .debounceTime(450)
       .takeUntil(this.ngUnsubscribe)
       .subscribe((code) => {
         this.setNewFileContent(code);
         this.checkCode();
       });
-
-    // изменения через историю
-    this.chronicle.onChange((cursor) => {
-      if (!this.activeFile) {
-        return;
-      }
-
-      this.editor.setValue(this.activeFile.content);
-      this.editor.setCursor(cursor || this.editor.getCursor());
-
-      this.saveFileChanges();
-      this.checkCode();
-    });
-  }
-
-  private setNewFileContent(code) {
-    if (!this.activeFile) {
-      return;
-    }
-
-    this.activeFile.content = code;
-
-    this.chronicle.addToHistory(this.activeFile.content, {
-      from: this.fromCursor || this.editor.getCursor(),
-      to: this.editor.getCursor()
-    });
-
-    this.fromCursor = null;
-
-    this.saveFileChanges();
   }
 
   private subscribeToProjectSaved() {
@@ -187,7 +146,13 @@ export class EditorComponent implements OnInit, OnDestroy {
       );
   }
 
-  private saveFileChanges() {
+  private setNewFileContent(code) {
+    if (!this.activeFile) {
+      return;
+    }
+
+    this.activeFile.content = code;
+
     if (this.activeFile.type === 'playground') {
       return;
     }
@@ -205,148 +170,6 @@ export class EditorComponent implements OnInit, OnDestroy {
     }
 
     this.lastFileChangedStatus = this.activeFile.isChanged;
-  }
-
-}
-
-class Chronicle {
-
-  activeFile;
-
-  private preventEditor = false;
-  private callback;
-
-  constructor() {}
-
-  setFile(file) {
-    if (!this.isChangesObjExists(file)) {
-      file.changes = {
-        pos: 0,
-        stack: [ [file.content, '0,0;0,0'] ]
-      }
-    }
-
-    this.activeFile = file;
-  }
-
-  addToHistory(value, cursors) {
-    if (!this.activeFile) {
-      return;
-    }
-
-    const cursorString = isString(cursors) ? cursors : `${cursors.from.line},${cursors.from.ch};${cursors.to.line},${cursors.to.ch}`;
-
-    // если дупликат значения, то просто обновляем курсор последнего, но не добавляем новый
-    if (this.activeFile.changes.stack.length && value === last(this.activeFile.changes.stack)[0]) {
-      return;
-    }
-
-    // удаляем все элементы после текущего
-    if (this.activeFile.changes.pos < this.activeFile.changes.stack.length - 1) {
-      this.activeFile.changes.stack.splice(this.activeFile.changes.pos + 1);
-    }
-
-    if (this.activeFile.changes.stack >= 100) {
-      this.activeFile.changes.stack.shift();
-    }
-
-    this.activeFile.changes.pos = this.activeFile.changes.stack.push([value, cursorString]) - 1;
-  }
-
-  undo() {
-    if (!this.canUndo()) {
-      return;
-    }
-
-    const current = this.activeFile.changes.stack[this.activeFile.changes.pos];
-
-    this.activeFile.changes.pos--;
-    this.setContent('undo', current);
-  }
-
-  redo() {
-    if (!this.canRedo()) {
-      return;
-    }
-
-    this.activeFile.changes.pos++;
-    this.setContent('redo');
-  }
-
-  onChange(callback) {
-    this.callback = callback;
-  }
-
-  // предотавращаем изменения поле редактора (после обновления поле редактора)
-  preventEditorChange() {
-    if (this.preventEditor) {
-      this.preventEditor = false;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  private setContent(type, current?) {
-    this.activeFile.content = this.activeFile.changes.stack[this.activeFile.changes.pos][0];
-    this.preventEditor = true;
-
-    let cursor;
-
-    if (type === 'undo' && current) {
-      const cursors = current[1].split(';');
-      cursor = cursors[0].split(',');
-    } else {
-      const cursors = this.activeFile.changes.stack[this.activeFile.changes.pos][1].split(';');
-      cursor = cursors[1].split(',');
-    }
-
-    cursor = {
-      line: cursor[0],
-      ch: cursor[1]
-    }
-
-    this.callback(cursor);
-  }
-
-  private canUndo(): boolean {
-    if (!this.activeFile) {
-      return false;
-    }
-
-    if (this.activeFile.changes.pos === 0) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private canRedo(): boolean {
-    if (!this.activeFile) {
-      return false;
-    }
-
-    if (this.activeFile.changes.pos >= this.activeFile.changes.stack.length - 1) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private isChangesObjExists(file): boolean {
-    if (!file) {
-      return false;
-    }
-
-    if (!file.changes || !(typeof file.changes === 'object')) {
-      return false;
-    }
-
-    if (!file.changes.pos || !file.changes.stack || !Array.isArray(file.changes.stack)) {
-      return false;
-    }
-
-    return true;
   }
 
 }

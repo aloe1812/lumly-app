@@ -1,7 +1,7 @@
 import { Menu, MenuItem, app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { topMenuEvents, contextMenu, fileContextMenu } from './electron/menu';
 import { recents, store } from './electron/store';
-import { getWindowBounds, parseProjectFile, showSureCloseDialog } from './electron/utils';
+import { getWindowBounds, parseProjectFile, showSureCloseDialog, showWindowIfPathAleradyExists } from './electron/utils';
 import { AppState } from './electron/state';
 import * as log from 'electron-log';
 import * as path from 'path';
@@ -23,12 +23,6 @@ if (serve) {
 // автоматически, когда сборщик мусора удалит объект
 const windows = [];
 
-// Различного рода перемененные
-const dataForWindow = {
-  platform: process.platform,
-  recentFiles: []
-}
-
 // Функция для создания окна приложения
 function createWindow(data?) {
 
@@ -43,8 +37,6 @@ function createWindow(data?) {
   if (prevBounds) {
     delete data.bounds;
   }
-
-  dataForWindow.recentFiles = recents.get();
 
   let win = new BrowserWindow({
     title: 'lumly',
@@ -62,7 +54,7 @@ function createWindow(data?) {
 
   windows.push(win);
 
-  (<any>win).customWindowData = Object.assign({}, dataForWindow, data);
+  (<any>win).customWindowData = Object.assign({ windowId: win.id }, data);
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/index.html`);
@@ -73,7 +65,9 @@ function createWindow(data?) {
   }
 
   // Если закрыли окно, очишаем его и удаляем из массива
-  win.on('closed', function () {
+  win.on('closed', (event) => {
+    recents.removeCallback(event.sender.customWindowData.windowId);
+
     const winIndex = windows.indexOf(win);
 
     if (winIndex !== -1) {
@@ -115,11 +109,15 @@ app.on('will-finish-launching', () => {
   app.on('open-file', (event, filePath) => {
     event.preventDefault();
 
-    if (windows.length) {
-      if (!showWindowIfPathAlreadyOpen(filePath)) {
+    if (windows.length) { // если есть окна, то проверяем в открытых окнах
+      if (!showWindowIfPathAleradyExists(filePath)) {
         createWindow({path: filePath});
       }
-    } else {
+    } else if (AppState.hasStored) { // окон нету (приложение загружается) => проверяем в сохраненных проектах
+      if (!AppState.isPathStored(filePath)) {
+        openedFromPath = filePath;
+      }
+    } else { // ничего нету => то просто откроем
       openedFromPath = filePath;
     }
   });
@@ -292,7 +290,7 @@ function openProjectByPath(sender, filePath, origin) {
 
   // проверяем, есть ли уже окно с таким путем
   // не проверяем если открыто через файл, так как в этом случае, мы уже это проверили в событии 'open-file' выше
-  if (origin !== 'file' && showWindowIfPathAlreadyOpen(filePath)) {
+  if (origin !== 'file' && showWindowIfPathAleradyExists(filePath)) {
     return;
   }
 
@@ -300,10 +298,9 @@ function openProjectByPath(sender, filePath, origin) {
     if (err) {
       if (origin === 'window-recent' || origin === 'menu-recent') {
         recents.remove(filePath);
-        sender.webContents.send('open-project-file:error', {type: 'general', origin, recentFiles: recents.get()});
-      } else {
-        sender.webContents.send('open-project-file:error', {type: 'general', origin});
       }
+
+      sender.webContents.send('open-project-file:error', {type: 'general', origin});
 
       return;
     }
@@ -332,29 +329,6 @@ function openProjectByPath(sender, filePath, origin) {
       });
     }
   });
-}
-
-function showWindowIfPathAlreadyOpen(filePath): boolean {
-
-  if (windows.length) {
-    let isWindowFound = false;
-
-    _.forEach(windows, window => {
-      if (
-        (<any>window).customWindowData &&
-        (<any>window).customWindowData.projectPath &&
-        (<any>window).customWindowData.projectPath === filePath
-      ) {
-        window.show();
-        isWindowFound = true;
-        return false;
-      }
-    });
-
-    return isWindowFound;
-  } else {
-    return false;
-  }
 }
 
 /*********** Сохранение проекта ***************/

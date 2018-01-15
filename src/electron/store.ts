@@ -67,8 +67,8 @@ class Recents {
       this.recents = this.recents.slice(0, 8);
     }
 
-    this.callbacks.forEach(callback => {
-      callback(this.recents);
+    this.callbacks.forEach(item => {
+      item.callback(this.recents);
     });
   }
 
@@ -77,8 +77,8 @@ class Recents {
       return file.path === filePath;
     });
 
-    this.callbacks.forEach(callback => {
-      callback(this.recents);
+    this.callbacks.forEach(item => {
+      item.callback(this.recents);
     });
   }
 
@@ -86,8 +86,17 @@ class Recents {
     this.store.set('recentFiles', this.recents);
   }
 
-  onUpdate(callback) {
-    this.callbacks.push(callback);
+  onUpdate(callback, id = null) {
+    this.callbacks.push({
+      id: id,
+      callback: callback
+    });
+  }
+
+  removeCallback(id) {
+    _.remove(this.callbacks, item => {
+      return item.id === id;
+    });
   }
 
 }

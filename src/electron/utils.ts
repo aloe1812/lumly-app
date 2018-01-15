@@ -1,5 +1,7 @@
-import { screen, dialog } from 'electron';
+import { screen, dialog, BrowserWindow } from 'electron';
+import { AppState } from './state';
 import * as _ from 'lodash';
+import * as log from 'electron-log';
 
 const DEFAULT_SIZES = {
   width: 1200,
@@ -85,4 +87,28 @@ export function showSureCloseDialog(win) {
     isClose: (choice === 2),
     isSave: (choice === 0)
   }
+}
+
+export function showWindowIfPathAleradyExists(filePath): boolean | BrowserWindow {
+  const windows = BrowserWindow.getAllWindows();
+  let isWindowFound = false;
+
+  if (windows.length) {
+    _.forEach(windows, window => {
+      if (
+        (<any>window).customWindowData &&
+        (<any>window).customWindowData.projectPath &&
+        (<any>window).customWindowData.projectPath === filePath
+      ) {
+        window.show();
+        isWindowFound = true;
+        return false;
+      }
+    });
+
+    return isWindowFound
+  } else {
+    return false;
+  }
+
 }
