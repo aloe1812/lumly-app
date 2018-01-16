@@ -27,7 +27,7 @@ const postcssPlugins = function () {
   // safe settings based on: https://github.com/ben-eb/cssnano/issues/358#issuecomment-283696193
   const importantCommentRe = /@preserve|@license|[@#]\s*source(?:Mapping)?URL|^!/i;
   const minimizeOptions = {
-      autoprefixer: false,
+      // autoprefixer: false,
       safe: true,
       mergeLonghand: false,
       discardComments: { remove: (comment) => !importantCommentRe.test(comment) }
@@ -54,7 +54,7 @@ const postcssPlugins = function () {
             }
           }
       }),
-      autoprefixer(),
+      // autoprefixer(),
       customProperties({ preserve: true })
   ].concat(minimizeCss ? [cssnano(minimizeOptions)] : []);
 };
