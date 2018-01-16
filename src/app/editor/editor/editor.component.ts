@@ -5,8 +5,8 @@ import { ResizeService } from 'app/core/resize.service';
 import { GenerationService } from 'app/core/generation.service';
 import { ipcRenderer } from 'electron';
 
-import * as CodeMirror from 'CodeMirror';
-import 'CodeMirror/addon/scroll/simplescrollbars';
+import CodeMirror from '../codemirror';
+
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/takeUntil';
@@ -17,7 +17,6 @@ import * as has from 'lodash/has';
 import * as last from 'lodash/last';
 import * as isString from 'lodash/isString';
 
- // TODO: подумать как брать позицию откуда началось изменениe
 @Component({
   selector: 'app-editor',
   templateUrl: './editor.component.html',
