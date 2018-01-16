@@ -5,12 +5,19 @@
   flex-direction: row;
   width: auto;
   background: transparent;
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  &::-webkit-scrollbar {
+    background: #1A1A1A;
+    height: 8px;
+  }
 }
 
 .level-1 {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   width: 280px;
   background: #1A1A1A;
   color: $light;
