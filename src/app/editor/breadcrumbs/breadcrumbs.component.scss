@@ -2,9 +2,13 @@
 
 :host {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   font-size: 13px;
   color: $grey;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  direction: rtl;
   > div {
     display: flex;
     align-items: center;
@@ -16,7 +20,7 @@
       margin: 0 4px;
     }
   }
-  > div:last-child {
+  > div:first-child {
     color: #000;
   }
   .playground > div {

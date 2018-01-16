@@ -29,7 +29,7 @@ export class BreadcrumbsComponent implements OnInit, OnDestroy {
     this.sub = this.store.data('File:Show:Path').get()
       .subscribe(path => {
         if (path) {
-          setTimeout(() => { this.path = path; });
+          setTimeout(() => { this.path = path.reverse(); });
         } else {
           this.path = null;
         }
