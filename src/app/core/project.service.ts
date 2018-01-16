@@ -167,6 +167,9 @@ export class ProjectService {
   }
 
   saveProject(isSaveAs = false) {
+    // сохраняем историю активного файла, чтобы была сохранена акутуальная история
+    this.editorComponent.saveActiveFileHistory();
+
     if (!isSaveAs && !this.project.project.hasChanges) {
       return;
     }

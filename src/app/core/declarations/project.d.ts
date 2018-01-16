@@ -31,6 +31,7 @@ export class Project extends ProjectPristine {
 }
 
 export class File extends FilePristine {
+  doc?: any;
   originalContent?: string;
   guid?: number;
   parentGuid?: number;

@@ -75,6 +75,7 @@ export class EditorComponent implements OnInit, OnDestroy {
       lineNumbers: true,
       gutters: ['CodeMirror-lint-markers', 'CodeMirror-linenumbers'],
       tabSize: 2,
+      undoDepth: 100,
       historyEventDelay: 450
     });
 
