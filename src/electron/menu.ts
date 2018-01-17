@@ -1,5 +1,4 @@
 import { app, Menu, shell, MenuItem, ipcMain, BrowserWindow } from 'electron';
-import * as path from 'path';
 import * as EventEmitter from 'events';
 import * as _ from 'lodash';
 import { recents } from './store';
@@ -274,7 +273,7 @@ function getRecentsSubmenu() {
     try {
       recentFiles.forEach(recentFile => {
         template.push({
-          label: path.basename(recentFile.path),
+          label: recentFile.title,
           click: (item, focusedWindow) => {
             topMenuEvents.emit(
               'open-project',

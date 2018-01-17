@@ -185,10 +185,6 @@ ipcMain.on('file-open-context-menu', (event, params) => {
   });
 });
 
-ipcMain.on('get-filename-from-path', (event, filePath) => {
-  event.returnValue = path.basename(filePath);
-});
-
 /***********************************************
 * ============ События приложения ============ *
 ***********************************************/

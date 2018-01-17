@@ -2,7 +2,7 @@ import * as Storage from 'electron-store';
 import * as _ from 'lodash';
 import * as path from 'path';
 
-// export const store = new Store({
+// export const storage = new Storage({
 //   encryptionKey: 'Qpv54qjyyoZ6Ii3QZ3I6'
 // });
 
@@ -16,7 +16,7 @@ class Store {
 
   constructor(appStorage: Storage) {
     this.storage = appStorage;
-    this.store = this.storage.get('store', {});
+    this.store = this.storage.get('app_store', {});
   }
 
   get(key, defaultValue) {
@@ -28,7 +28,7 @@ class Store {
   }
 
   save() {
-    this.storage.set('store', this.store);
+    this.storage.set('app_store', this.store);
   }
 
 }
@@ -45,8 +45,17 @@ class Recents {
     this.recents = this.store.get('recentFiles', []);
   }
 
+  mappedRecents() {
+    return this.recents.map(filePath => {
+      return {
+        title: path.basename(filePath),
+        path: filePath
+      }
+    });
+  }
+
   get() {
-    return this.recents;
+    return this.mappedRecents();
   }
 
   add(filePath) {
@@ -54,31 +63,25 @@ class Recents {
       this.recents = [];
     }
 
-    this.recents.unshift({
-      path: filePath,
-      title: path.basename(filePath)
-    });
-
-    this.recents = _.uniqWith(this.recents, (arrVal, othVal) => {
-      return arrVal.path === othVal.path
-    });
+    this.recents.unshift(filePath);
+    this.recents = _.uniq(this.recents);
 
     if (this.recents.length > 8) {
       this.recents = this.recents.slice(0, 8);
     }
 
     this.callbacks.forEach(item => {
-      item.callback(this.recents);
+      item.callback(this.mappedRecents());
     });
   }
 
   remove(filePath) {
     _.remove(this.recents, (file) => {
-      return file.path === filePath;
+      return file === filePath;
     });
 
     this.callbacks.forEach(item => {
-      item.callback(this.recents);
+      item.callback(this.mappedRecents());
     });
   }
 

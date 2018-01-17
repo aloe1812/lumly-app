@@ -10,6 +10,8 @@ import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
 import * as isArray from 'lodash/isArray';
 
+import * as nodePath from 'path';
+
 const recents = remote.require('./electron/store').recents;
 
 const FILE_ERRORS = {
@@ -198,7 +200,7 @@ export class ProjectService {
   setWindowTitle() {
     if (this.project) {
       if (this.project.project.path) {
-        this.title.setTitle(`${this.project.project.title} (${ipcRenderer.sendSync('get-filename-from-path', this.project.project.path)})`);
+        this.title.setTitle(`${this.project.project.title} (${nodePath.basename(this.project.project.path)})`);
       } else {
         this.title.setTitle(`${this.project.project.title} (unsaved)`);
       }

@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SvgIconModule } from '../svg-icon/svg-icon.module';
-import { SharedModule } from '../shared/shared.module';
 
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { ProjectComponent } from './project/project.component';
@@ -14,8 +13,7 @@ import { AddMenuComponent } from './add-menu/add-menu.component';
 @NgModule({
   imports: [
     CommonModule,
-    SvgIconModule,
-    SharedModule
+    SvgIconModule
   ],
   declarations: [
     SidebarComponent,
