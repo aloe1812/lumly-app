@@ -400,3 +400,20 @@ ipcMain.on('project-save-as', (event, data) => {
 
   });
 });
+
+/* ============ Разное ============= */
+ipcMain.on('confirm-delete-dialog', (event, title) => {
+  const win = BrowserWindow.fromWebContents(event.sender.webContents);
+
+  const choice = dialog.showMessageBox(win, {
+    type: 'question',
+    buttons: ['Delete', 'Cancel'],
+    message: `Are you sure you want to delete "${title || 'item'}"?`,
+    defaultId: 0,
+    cancelId: 1
+  });
+
+  const isDelete = (choice === 0);
+
+  event.returnValue = isDelete;
+});
