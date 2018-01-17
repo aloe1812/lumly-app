@@ -3,10 +3,10 @@ import { DragService } from 'app/core/drag.service';
 import { StoreService } from '../../core/store.service';
 import { FileService } from '../../core/file.service';
 import { ProjectService } from '../../core/project.service';
-import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
 
 import * as forEach from 'lodash/forEach';
 import * as remove from 'lodash/remove';
+import { ipcRenderer } from 'electron';
 
 @Component({
   selector: 'app-file',
@@ -37,7 +37,6 @@ export class FileComponent implements OnInit {
   constructor(
     public elementRef: ElementRef,
     private store: StoreService,
-    private uiUtils: SharedUiUtilsService,
     private fileService: FileService,
     private projectService: ProjectService,
     private dragService: DragService
@@ -111,6 +110,7 @@ export class FileComponent implements OnInit {
     this.onDelete.emit(data);
   }
 
+  // вызывается из fileService после показа контекстного меню
   handleMenuEvent(type) {
     if (!type) {
       return;
@@ -121,7 +121,11 @@ export class FileComponent implements OnInit {
     }
 
     if (type === 'delete') {
-      this.confirmDelete();
+      const isDelete = ipcRenderer.sendSync('confirm-delete-dialog', this.file.title);
+
+      if (isDelete) {
+        this.deleteFile();
+      }
     }
   }
 
@@ -151,21 +155,6 @@ export class FileComponent implements OnInit {
     } else {
       this.filePath = [this.file];
     }
-  }
-
-  private confirmDelete() {
-    let title;
-    if (this.isGroup) {
-      title = 'group';
-    } else if (this.isFile) {
-      title = 'file';
-    }
-    this.uiUtils.confirmDelete({title})
-      .subscribe((isSure) => {
-        if (isSure) {
-          this.deleteFile();
-        }
-      });
   }
 
   private deleteFile() {

@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, HostListener } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ProjectService } from 'app/core/project.service';
-import { SharedUiUtilsService } from '../../shared/shared-ui-utils.service';
 
 @Component({
   selector: 'app-project-settings',
@@ -17,8 +16,7 @@ export class ProjectSettingsComponent implements OnInit {
   projectNameCtrl = new FormControl();
 
   constructor(
-    private projectService: ProjectService,
-    private uiUtils: SharedUiUtilsService
+    private projectService: ProjectService
   ) { }
 
   @HostListener('document:keydown', ['$event'])
