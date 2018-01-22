@@ -75,7 +75,10 @@ export class EditorComponent implements OnInit, OnDestroy {
       gutters: ['CodeMirror-lint-markers', 'CodeMirror-linenumbers'],
       tabSize: 2,
       undoDepth: 100,
-      historyEventDelay: 450
+      historyEventDelay: 450,
+      lint: {
+        lintOnChange: false
+      }
     });
 
     this.generationService.setEditor(this.editor);
@@ -95,7 +98,7 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.saveActiveFileHistory();
 
         // устанавливаем новый doc для файла
-        const newDoc = CodeMirror.Doc(file.content);
+        const newDoc = CodeMirror.Doc(file.content, 'uml');
 
         if (file.history) {
           newDoc.clearHistory();
