@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+import { FilePristine, File } from './declarations/project.d';
 import { ipcRenderer } from 'electron';
+import * as forEach from 'lodash/forEach';
 
 @Injectable()
 export class FileService {
@@ -74,6 +76,51 @@ export class FileService {
   openFileContextMenu(fileRef, params) {
     this.activeContextFileRef = fileRef;
     ipcRenderer.send('file-open-context-menu', params);
+  }
+
+  updateFilesAfterSave(files: File[], parentGuid: number) {
+    forEach(files, (file) => {
+      if (file.type === 'file') {
+        file.isChanged = false;
+        file.originalContent = file.content;
+      }
+
+      file.parentGuid = parentGuid;
+      file.isNew = false;
+      file.isTitleChanged = false;
+      file.originalTitle = file.title;
+
+      if (file.type === 'group') {
+        this.updateFilesAfterSave(file.files, file.guid);
+      }
+    });
+  }
+
+  cloneFilesForSave(files: File[]): FilePristine[] {
+    const filesClone = [];
+
+    forEach(files, fileItem => {
+      const file: any = {
+        title: fileItem.title,
+        type: fileItem.type
+      }
+
+      if (file.type === 'file') {
+        file.content = fileItem.content;
+      }
+
+      if (file.type === 'group') {
+        file.files = this.cloneFilesForSave(fileItem.files);
+      }
+
+      if (fileItem.history) {
+        file.history = fileItem.history;
+      }
+
+      filesClone.push(file);
+    });
+
+    return filesClone;
   }
 
   private subscribeToElectronEvents() {

@@ -5,6 +5,7 @@ import { Project, ProjectPristine } from './declarations/project.d';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
 import { Title } from '@angular/platform-browser';
+import { FileService } from 'app/core/file.service';
 
 import * as isEmpty from 'lodash/isEmpty';
 import * as forEach from 'lodash/forEach';
@@ -13,6 +14,7 @@ import * as isArray from 'lodash/isArray';
 import * as nodePath from 'path';
 
 const recents = remote.require('./electron/store').recents;
+const currentWindow = remote.getCurrentWindow();
 
 const FILE_ERRORS = {
   ext: `Error: File extension is incorrect. Must be 'lumly'`,
@@ -36,13 +38,14 @@ export class ProjectService {
 
   constructor(
     private store: StoreService,
-    private title: Title
+    private title: Title,
+    private fileService: FileService
   ) {
     this.recentProjects = recents.get();
 
     recents.onUpdate(items => {
       this.recentProjects.splice(0, this.recentProjects.length, ...items);
-    }, remote.getCurrentWindow().id);
+    }, currentWindow.id);
 
     this.subscribeToEvents();
     this.subscribeToTriggerEvents();
@@ -215,63 +218,18 @@ export class ProjectService {
         title: this.project.project.title
       },
       content: {
-        files: cloneFiles(this.project.content.files)
+        files: this.fileService.cloneFilesForSave(this.project.content.files)
       }
     };
-
-    function cloneFiles(files) {
-      const filesClone = [];
-
-      forEach(files, fileItem => {
-        const file: any = {
-          title: fileItem.title,
-          type: fileItem.type
-        }
-
-        if (file.type === 'file') {
-          file.content = fileItem.content;
-        }
-
-        if (file.type === 'group') {
-          file.files = cloneFiles(fileItem.files);
-        }
-
-        if (fileItem.history) {
-          file.history = fileItem.history;
-        }
-
-        filesClone.push(file);
-      });
-
-      return filesClone;
-    }
   }
 
   private updateProjectAfterSave() {
     this.project.project.changes = {};
 
-    updateFiles(this.project.content.files, 0);
+    this.fileService.updateFilesAfterSave(this.project.content.files, 0);
 
     this.project.project.hasChanges = false;
     this.project.project.originalTitle = this.project.project.title;
-
-    function updateFiles(files, parentGuid) {
-      forEach(files, (file) => {
-        if (file.type === 'file') {
-          file.isChanged = false;
-          file.originalContent = file.content;
-        }
-
-        file.parentGuid = parentGuid;
-        file.isNew = false;
-        file.isTitleChanged = false;
-        file.originalTitle = file.title;
-
-        if (file.type === 'group') {
-          updateFiles(file.files, file.guid);
-        }
-      });
-    }
   }
 
   private subscribeToEvents() {
@@ -310,7 +268,7 @@ export class ProjectService {
           this.closeProject();
           this.closeAfterSave = false;
         } else {
-          remote.getCurrentWindow().close();
+          currentWindow.close();
         }
       }
     });
@@ -386,7 +344,7 @@ export class ProjectService {
       this.setWindowTitle();
       this.store.data('JSON-UML').set(null);
     } else {
-      remote.getCurrentWindow().close();
+      currentWindow.close();
     }
   }
 
