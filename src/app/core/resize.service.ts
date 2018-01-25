@@ -357,7 +357,7 @@ export class ResizeService {
 
   private refreshEditor() {
     if (this.editor) {
-      this.editor.refresh();
+      this.editor.resize();
     }
   }
 
