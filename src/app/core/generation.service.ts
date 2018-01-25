@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as forEach from 'lodash/forEach';
 import { Observable } from 'rxjs/Observable';
 import { Range } from '../editor/ace';
+// import * as Ranges from 'range-calculator';
 
 @Injectable()
 export class GenerationService {

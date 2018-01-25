@@ -70,6 +70,7 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.projectService.setEditorComponent(this);
 
     this.editor = ace.edit('editor');
+    this.editor.setOption('showPrintMargin', false)
     this.editor.$blockScrolling = Infinity;
 
     this.generationService.setEditor(this.editor);

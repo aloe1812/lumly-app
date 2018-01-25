@@ -43,6 +43,7 @@
     "dragula": "^3.7.2",
     "enhanced-resolve": "^4.0.0-beta.2",
     "lodash": "^4.17.4",
+    "range-calculator": "^1.0.0",
     "rxjs": "^5.5.6",
     "zone.js": "^0.8.19"
   },
