@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import * as CodeMirror from 'CodeMirror';
 import * as forEach from 'lodash/forEach';
 import { Observable } from 'rxjs/Observable';
 
@@ -14,13 +13,7 @@ export class GenerationService {
 
   constructor(
     private http: HttpClient
-  ) {
-
-    // register linter
-    CodeMirror.registerHelper('lint', 'uml', () => {
-      return this.errors;
-    });
-  }
+  ) { }
 
   checkCode(code): Observable<any> {
     return Observable.create((observer) => {
@@ -64,28 +57,28 @@ export class GenerationService {
   }
 
   setErrors(errors) {
-    if (this.errors.length) {
-      this.clearErrors();
-    }
+    // if (this.errors.length) {
+    //   this.clearErrors();
+    // }
 
-    forEach(errors, error => {
-      this.errors.push(
-        {
-          from: CodeMirror.Pos(error.start.line, error.start.offset),
-          to: CodeMirror.Pos(error.end.line, error.end.offset),
-          message: error.message
-        }
-      );
-    });
+    // forEach(errors, error => {
+    //   this.errors.push(
+    //     {
+    //       from: CodeMirror.Pos(error.start.line, error.start.offset),
+    //       to: CodeMirror.Pos(error.end.line, error.end.offset),
+    //       message: error.message
+    //     }
+    //   );
+    // });
 
-    this.editor.performLint();
+    // this.editor.performLint();
   }
 
   clearErrors() {
-    if (this.errors.length) {
-      this.errors = [];
-    }
-    this.editor.performLint();
+    // if (this.errors.length) {
+    //   this.errors = [];
+    // }
+    // this.editor.performLint();
   }
 
   private cancelPrevChecks() {

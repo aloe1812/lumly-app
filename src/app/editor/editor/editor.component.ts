@@ -1,21 +1,18 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { StoreService } from '../../core/store.service';
 import { ProjectService } from '../../core/project.service';
 import { ResizeService } from 'app/core/resize.service';
 import { GenerationService } from 'app/core/generation.service';
 import { ipcRenderer } from 'electron';
 
-import CodeMirror from '../codemirror';
+import ace from '../ace';
 
 import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/takeUntil';
 import 'rxjs/add/operator/finally';
 
-import * as forEach from 'lodash/forEach';
 import * as has from 'lodash/has';
-import * as last from 'lodash/last';
-import * as isString from 'lodash/isString';
 
 @Component({
   selector: 'app-editor',
@@ -23,8 +20,6 @@ import * as isString from 'lodash/isString';
   styleUrls: ['./editor.component.scss']
 })
 export class EditorComponent implements OnInit, OnDestroy {
-
-  @ViewChild('textarea') textarea: ElementRef;
 
   editor;
   mark;
@@ -63,29 +58,25 @@ export class EditorComponent implements OnInit, OnDestroy {
     if (!this.activeFile) {
       return;
     }
-    const doc = this.editor.getDoc();
-    this.activeFile.history = doc.getHistory();
+    const undoManager = this.editor.session.getUndoManager();
+    this.activeFile.history = {
+      undoStack: undoManager.$undoStack,
+      redoStack: undoManager.$redoStack,
+      counter: undoManager.dirtyCounter
+    };
   }
 
   private initEditor() {
     this.projectService.setEditorComponent(this);
 
-    this.editor = CodeMirror.fromTextArea(this.textarea.nativeElement, {
-      lineNumbers: true,
-      gutters: ['CodeMirror-lint-markers', 'CodeMirror-linenumbers'],
-      tabSize: 2,
-      undoDepth: 100,
-      historyEventDelay: 450,
-      lint: {
-        lintOnChange: false
-      }
-    });
+    this.editor = ace.edit('editor');
+    this.editor.$blockScrolling = Infinity;
 
     this.generationService.setEditor(this.editor);
     this.resizeService.setEditor(this.editor);
 
-    this.editor.on('change', (codemirror) => {
-      this.codeTerms.next(codemirror.getValue());
+    this.editor.session.on('change', (e) => {
+      this.codeTerms.next(this.editor.getValue());
     });
   }
 
@@ -94,18 +85,8 @@ export class EditorComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(file => {
 
-        this.editor.getInputField().blur();
+        this.editor.blur();
         this.saveActiveFileHistory();
-
-        // устанавливаем новый doc для файла
-        const newDoc = CodeMirror.Doc(file.content, 'uml');
-
-        if (file.history) {
-          newDoc.clearHistory();
-          newDoc.setHistory(file.history);
-        }
-
-        this.editor.swapDoc(newDoc);
 
         if ( !has(file, 'originalContent') ) {
           file.originalContent = file.content;
@@ -116,6 +97,18 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.activeFile = file;
 
         this.editor.setValue(file.content);
+        this.editor.clearSelection();
+
+        this.editor.session.setUndoManager(new ace.UndoManager());
+
+        if (file.history) {
+          const undoManager = this.editor.session.getUndoManager();
+
+          undoManager.$doc = this.editor.getSession();
+          undoManager.$redoStack = file.history.redoStack;
+          undoManager.$undoStack = file.history.undoStack;
+          undoManager.dirtyCounter = file.history.counter;
+        }
       });
   }
 
