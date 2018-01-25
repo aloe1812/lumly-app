@@ -85,6 +85,7 @@ export class EditorComponent implements OnInit, OnDestroy {
       .takeUntil(this.ngUnsubscribe)
       .subscribe(file => {
 
+        this.generationService.clearErrors();
         this.editor.blur();
         this.saveActiveFileHistory();
 

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as forEach from 'lodash/forEach';
 import { Observable } from 'rxjs/Observable';
+import { Range } from '../editor/ace';
 
 @Injectable()
 export class GenerationService {
@@ -9,7 +10,7 @@ export class GenerationService {
   editor;
   codeCheckSub;
 
-  private errors = [];
+  private markers = [];
 
   constructor(
     private http: HttpClient
@@ -57,28 +58,41 @@ export class GenerationService {
   }
 
   setErrors(errors) {
-    // if (this.errors.length) {
-    //   this.clearErrors();
-    // }
+    if (this.markers.length) {
+      this.clearErrors();
+    }
 
-    // forEach(errors, error => {
-    //   this.errors.push(
-    //     {
-    //       from: CodeMirror.Pos(error.start.line, error.start.offset),
-    //       to: CodeMirror.Pos(error.end.line, error.end.offset),
-    //       message: error.message
-    //     }
-    //   );
-    // });
+    const session = this.editor.session;
 
-    // this.editor.performLint();
+    const annotations = [];
+
+    forEach(errors, error => {
+      annotations.push({
+        row: error.start.line,
+        column: 0,
+        text: error.message,
+        type: 'error'
+      });
+
+      this.markers.push(
+        session.addMarker(new Range(error.start.line, error.start.offset, error.end.line, error.end.offset), 'editor-line-error', 'line', true)
+      );
+    });
+
+    session.setAnnotations(annotations);
   }
 
   clearErrors() {
-    // if (this.errors.length) {
-    //   this.errors = [];
-    // }
-    // this.editor.performLint();
+    const session = this.editor.session;
+
+    if (this.markers.length) {
+      forEach(this.markers, markId => {
+        session.removeMarker(markId);
+      });
+      this.markers = [];
+    }
+
+    session.setAnnotations([]);
   }
 
   private cancelPrevChecks() {
