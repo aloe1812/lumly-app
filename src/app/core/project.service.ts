@@ -208,7 +208,7 @@ export class ProjectService {
         this.title.setTitle(`${this.project.project.title} (unsaved)`);
       }
     } else {
-      this.title.setTitle('lumly');
+      this.title.setTitle('Lumly');
     }
   }
 

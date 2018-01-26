@@ -39,7 +39,7 @@ function createWindow(data?) {
   }
 
   let win = new BrowserWindow({
-    title: 'lumly',
+    title: 'Lumly',
     backgroundColor: '#111111',
     width: bounds.width,
     height: bounds.height,
