@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import * as forEach from 'lodash/forEach';
 import { Observable } from 'rxjs/Observable';
 import { Range } from '../editor/ace';
+import * as Ranges from 'range-calculator';
 
 @Injectable()
 export class GenerationService {
@@ -11,6 +12,7 @@ export class GenerationService {
   codeCheckSub;
 
   private markers = [];
+  private markersRanges: any = {};
 
   constructor(
     private http: HttpClient
@@ -55,6 +57,11 @@ export class GenerationService {
 
   setEditor(editor) {
     this.editor = editor;
+    this.editor.session.on('change', () => {
+      if (this.markers.length) {
+        this.clearErrors();
+      }
+    });
   }
 
   setErrors(errors) {
@@ -74,9 +81,22 @@ export class GenerationService {
         type: 'error'
       });
 
-      this.markers.push(
-        session.addMarker(new Range(error.start.line, error.start.offset, error.end.line, error.end.offset), 'editor-line-error', 'line', true)
-      );
+      // записываем это в хранилище Ranges, чтобы не ставить одину и ту же позитицию маркер несколько раз
+      if (error.start.line === error.end.line) {
+        if (this.markersRanges[error.start.line]) {
+          this.markersRanges[error.start.line].add([error.start.offset, error.end.offset]);
+        } else {
+          this.markersRanges[error.start.line] = new Ranges(error.start.offset, error.end.offset)
+        }
+      }
+    });
+
+    forEach(this.markersRanges, (ranges, line) => {
+      forEach(ranges.ranges, range => {
+        this.markers.push(
+          session.addMarker(new Range(line, range[0], line, range[1]), 'editor-line-error', 'line', true)
+        );
+      });
     });
 
     session.setAnnotations(annotations);
@@ -84,6 +104,8 @@ export class GenerationService {
 
   clearErrors() {
     const session = this.editor.session;
+
+    this.markersRanges = {};
 
     if (this.markers.length) {
       forEach(this.markers, markId => {
