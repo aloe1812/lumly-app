@@ -24,7 +24,8 @@
     "electron:build": "npx electron-builder build --mac",
     "electron:build:win": "npx electron-builder build --win",
     "publish": "build --mac -p always",
-    "electron-toolkit": "electron ./node_modules/electron-toolkit"
+    "electron-toolkit": "electron ./node_modules/electron-toolkit",
+    "build:install:dep": "cd dist && npm i electron-store electron-log lodash --save && cd .."
   },
   "dependencies": {
     "@angular/animations": "^5.2.2",
